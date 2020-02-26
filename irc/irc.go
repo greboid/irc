@@ -14,21 +14,9 @@ import (
 	"time"
 )
 
-func (irc *IRCConnection) pingLoop() {
-	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
-	for {
-		<-keepaliveTicker.C
-		if time.Since(irc.lastMessage) >= irc.ConnConfig.KeepAlive {
-			irc.SendRawf("PING %d", time.Now().UnixNano())
-		}
-	}
-}
-
 func (irc *IRCConnection) readLoop() {
 	rb := bufio.NewReaderSize(irc.socket, 512)
 	for {
-		select {
-		default:
 			msg, err := rb.ReadString('\n')
 			if err != nil {
 				irc.errorChannel <- err
@@ -38,27 +26,18 @@ func (irc *IRCConnection) readLoop() {
 			log.Printf("-> %v", msg)
 			message := irc.parseMesage(msg)
 			go irc.runCallbacks(message)
-		}
 	}
-}
-
-func (irc *IRCConnection) quitLoop() {
-	for {
-		select {
-		case <-irc.signals:
-			irc.doQuit()
-		case <-irc.quitting:
-			irc.doQuit()
-		}
-	}
-
 }
 
 func (irc *IRCConnection) writeLoop() {
+	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
 	for {
 		select {
-		default:
-			b, ok := <-irc.writeChan
+		case <-keepaliveTicker.C:
+			if time.Since(irc.lastMessage) >= irc.ConnConfig.KeepAlive {
+				irc.SendRawf("PING %d", time.Now().UnixNano())
+			}
+		case b, ok := <-irc.writeChan:
 			if !ok || b == "" || irc.socket == nil {
 				break
 			}
@@ -68,6 +47,10 @@ func (irc *IRCConnection) writeLoop() {
 				irc.errorChannel <- err
 				break
 			}
+		case <-irc.signals:
+			go irc.doQuit()
+		case <-irc.quitting:
+			go irc.doQuit()
 		}
 	}
 }
@@ -119,9 +102,7 @@ func (irc *IRCConnection) Connect() error {
 	}
 
 	go irc.readLoop()
-	go irc.pingLoop()
 	go irc.writeLoop()
-	go irc.quitLoop()
 
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)

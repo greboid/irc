@@ -12,8 +12,8 @@ var (
 		c.Finished <- true
 	}
 	defaultCallbacks = map[string]func(c *IRCConnection, m *Message){
-		"PING": pong,
-		"ERROR":   quitOnError,
+		"PING":  pong,
+		"ERROR": quitOnError,
 	}
 )
 
