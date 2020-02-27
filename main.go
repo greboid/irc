@@ -18,7 +18,7 @@ func main() {
 		},
 		ConnConfig: irc.DefaultConnectionConfig,
 	}
-	web := Web{config.channel, config.WebPort, connection}
+	web := Web{config.channel, config.WebPort, &connection}
 	go web.StartWeb()
 	connection.Init()
 	//Add some callbacks
