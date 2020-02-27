@@ -17,15 +17,15 @@ import (
 func (irc *IRCConnection) readLoop() {
 	rb := bufio.NewReaderSize(irc.socket, 512)
 	for {
-			msg, err := rb.ReadString('\n')
-			if err != nil {
-				irc.errorChannel <- err
-				break
-			}
-			irc.lastMessage = time.Now()
-			log.Printf("-> %v", msg)
-			message := irc.parseMesage(msg)
-			go irc.runCallbacks(message)
+		msg, err := rb.ReadString('\n')
+		if err != nil {
+			irc.errorChannel <- err
+			break
+		}
+		irc.lastMessage = time.Now()
+		log.Printf("-> %v", msg)
+		message := irc.parseMesage(msg)
+		go irc.runCallbacks(message)
 	}
 }
 
