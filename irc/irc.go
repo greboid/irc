@@ -3,8 +3,8 @@ package irc
 import (
 	"bufio"
 	"crypto/tls"
-	"errors"
 	"fmt"
+	"github.com/greboid/irc/config"
 	"log"
 	"net"
 	"os"
@@ -13,6 +13,20 @@ import (
 	"syscall"
 	"time"
 )
+
+func NewIRC(config *config.Config) *IRCConnection {
+	return &IRCConnection{
+		ClientConfig: ClientConfig{
+			Server:   config.Server,
+			Password: config.Password,
+			Nick:     config.Nickname,
+			User:     config.Nickname,
+			Realname: config.Nickname,
+			UseTLS:   true,
+		},
+		ConnConfig: DefaultConnectionConfig,
+	}
+}
 
 func (irc *IRCConnection) readLoop() {
 	rb := bufio.NewReaderSize(irc.socket, 512)
@@ -79,7 +93,7 @@ func (irc *IRCConnection) SendRawf(formatLine string, args ...interface{}) {
 }
 
 func (irc *IRCConnection) Init() {
-	irc.callbacks = make(map[string]map[int]func(*IRCConnection, *Message))
+	irc.callbacks = make(map[string][]func(*IRCConnection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
@@ -108,7 +122,7 @@ func (irc *IRCConnection) Connect() error {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
 	irc.SendRawf("NICK %s", irc.ClientConfig.Nick)
-	irc.SendRawf("USER %s 0.0.0.0 0.0.0.0 :%s", irc.ClientConfig.User, irc.ClientConfig.User)
+	irc.SendRawf("USER %s 0 * :%s", irc.ClientConfig.User, irc.ClientConfig.Realname)
 
 	irc.AddCallbacks(defaultCallbacks)
 
@@ -123,7 +137,7 @@ func (irc *IRCConnection) Wait() {
 
 func (irc *IRCConnection) ConnectAndWait() error {
 	if !irc.initialised {
-		return errors.New("Must be initialised first")
+		irc.Init()
 	}
 	err := irc.Connect()
 	if err != nil {

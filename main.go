@@ -1,37 +1,29 @@
 package main
 
 import (
+	"github.com/greboid/irc/config"
+	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
+	"github.com/greboid/irc/web"
 	"log"
 	"strings"
 )
 
 func main() {
-	config := getConfig()
-	connection := irc.IRCConnection{
-		ClientConfig: irc.ClientConfig{
-			Server:   config.server,
-			Password: config.password,
-			Nick:     config.nickname,
-			User:     config.nickname,
-			UseTLS:   true,
-		},
-		ConnConfig: irc.DefaultConnectionConfig,
-	}
-	web := Web{config.channel, config.WebPort, &connection}
-	go web.StartWeb()
-	connection.Init()
-	//Add some callbacks
+	conf := config.GetConfig()
+	db := database.New(conf.DBPath)
+	connection := irc.NewIRC(conf)
+	go web.NewWeb(conf, connection, db).StartWeb()
 	connection.AddCallback("001", func(c *irc.IRCConnection, m *irc.Message) {
-		c.SendRawf("JOIN %s", config.channel)
+		c.SendRawf("JOIN %s", conf.Channel)
 	})
 	connection.AddCallback("PRIVMSG", func(c *irc.IRCConnection, m *irc.Message) {
-		if strings.ToLower(m.Params) == config.channel+" hi" {
-			c.SendRawf("PRIVMSG %s Hey.", config.channel)
+		if strings.ToLower(m.Params) == conf.Channel+" hi" {
+			c.SendRawf("PRIVMSG %s Hey.", conf.Channel)
 		}
 	})
 	connection.AddCallback("PRIVMSG", func(c *irc.IRCConnection, m *irc.Message) {
-		if strings.ToLower(m.Params) == config.channel+" bye" {
+		if strings.ToLower(m.Params) == conf.Channel+" bye" {
 			c.Quit()
 		}
 	})

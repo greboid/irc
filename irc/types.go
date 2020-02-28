@@ -19,6 +19,7 @@ type ClientConfig struct {
 	User     string
 	Password string
 	UseTLS   bool
+	Realname string
 }
 
 type ConnectionConfig struct {
@@ -35,7 +36,7 @@ type IRCConnection struct {
 	Finished     chan bool
 	writeChan    chan string
 	errorChannel chan error
-	callbacks    map[string]map[int]func(*IRCConnection, *Message)
+	callbacks    map[string][]func(*IRCConnection, *Message)
 	signals      chan os.Signal
 	initialised  bool
 }

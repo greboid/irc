@@ -28,14 +28,7 @@ func (irc *IRCConnection) AddCallback(s string, f func(c *IRCConnection, m *Mess
 		irc.Init()
 	}
 	s = strings.ToUpper(s)
-	id := 0
-	_, ok := irc.callbacks[s]
-	if !ok {
-		irc.callbacks[s] = make(map[int]func(*IRCConnection, *Message))
-	} else {
-		id = len(irc.callbacks[s])
-	}
-	irc.callbacks[s][id] = f
+	irc.callbacks[s] = append(irc.callbacks[s], f)
 }
 
 func (irc *IRCConnection) runCallbacks(m *Message) {
