@@ -27,7 +27,7 @@ func New(path string) *DB {
 	return db
 }
 
-func (db *DB) checkKey(key string) bool {
+func (db *DB) CheckKey(key string) bool {
 	var valid bool
 	err := db.db.View(func(tx *buntdb.Tx) error {
 		_, err := tx.Get(key)
@@ -43,7 +43,7 @@ func (db *DB) checkKey(key string) bool {
 	return valid
 }
 
-func (db *DB) createKey(key string) error {
+func (db *DB) CreateKey(key string) error {
 	err := db.db.Update(func(tx *buntdb.Tx) error {
 		_, _, err := tx.Set(key, key, nil)
 		return err
