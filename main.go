@@ -14,15 +14,15 @@ func main() {
 	db := database.New(conf.DBPath)
 	connection := irc.NewIRC(conf)
 	go web.NewWeb(conf, connection, db).StartWeb()
-	connection.AddCallback("001", func(c *irc.IRCConnection, m *irc.Message) {
+	connection.AddCallback("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN %s", conf.Channel)
 	})
-	connection.AddCallback("PRIVMSG", func(c *irc.IRCConnection, m *irc.Message) {
+	connection.AddCallback("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
 		if strings.ToLower(m.Params) == conf.Channel+" hi" {
 			c.SendRawf("PRIVMSG %s Hey.", conf.Channel)
 		}
 	})
-	connection.AddCallback("PRIVMSG", func(c *irc.IRCConnection, m *irc.Message) {
+	connection.AddCallback("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
 		if strings.ToLower(m.Params) == conf.Channel+" bye" {
 			c.Quit()
 		}

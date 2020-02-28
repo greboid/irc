@@ -5,25 +5,25 @@ import (
 )
 
 var (
-	pong = func(c *IRCConnection, m *Message) {
+	pong = func(c *Connection, m *Message) {
 		c.SendRawf("PONG :%v", m.Params)
 	}
-	quitOnError = func(c *IRCConnection, m *Message) {
+	quitOnError = func(c *Connection, m *Message) {
 		c.Finished <- true
 	}
-	defaultCallbacks = map[string]func(c *IRCConnection, m *Message){
+	defaultCallbacks = map[string]func(c *Connection, m *Message){
 		"PING":  pong,
 		"ERROR": quitOnError,
 	}
 )
 
-func (irc *IRCConnection) AddCallbacks(callbacks map[string]func(c *IRCConnection, m *Message)) {
+func (irc *Connection) AddCallbacks(callbacks map[string]func(c *Connection, m *Message)) {
 	for verb, callback := range callbacks {
 		irc.AddCallback(verb, callback)
 	}
 }
 
-func (irc *IRCConnection) AddCallback(s string, f func(c *IRCConnection, m *Message)) {
+func (irc *Connection) AddCallback(s string, f func(c *Connection, m *Message)) {
 	if !irc.initialised {
 		irc.Init()
 	}
@@ -31,7 +31,7 @@ func (irc *IRCConnection) AddCallback(s string, f func(c *IRCConnection, m *Mess
 	irc.callbacks[s] = append(irc.callbacks[s], f)
 }
 
-func (irc *IRCConnection) runCallbacks(m *Message) {
+func (irc *Connection) runCallbacks(m *Message) {
 	callbacks := irc.callbacks[m.Verb]
 	for _, callback := range callbacks {
 		go callback(irc, m)

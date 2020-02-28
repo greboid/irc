@@ -12,11 +12,11 @@ import (
 
 type Web struct {
 	conf *config.Config
-	irc  *irc.IRCConnection
+	irc  *irc.Connection
 	db   *database.DB
 }
 
-func NewWeb(conf *config.Config, irc *irc.IRCConnection, db *database.DB) *Web {
+func NewWeb(conf *config.Config, irc *irc.Connection, db *database.DB) *Web {
 	return &Web{
 		conf: conf,
 		irc:  irc,

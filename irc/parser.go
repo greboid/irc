@@ -2,7 +2,7 @@ package irc
 
 import "strings"
 
-func (irc *IRCConnection) parseMesage(line string) *Message {
+func (irc *Connection) parseMesage(line string) *Message {
 	line = strings.TrimSuffix(line, "\n")
 	line = strings.TrimSuffix(line, "\r")
 	if len(line) < 5 {

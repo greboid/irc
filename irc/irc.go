@@ -14,8 +14,8 @@ import (
 	"time"
 )
 
-func NewIRC(config *config.Config) *IRCConnection {
-	return &IRCConnection{
+func NewIRC(config *config.Config) *Connection {
+	return &Connection{
 		ClientConfig: ClientConfig{
 			Server:   config.Server,
 			Password: config.Password,
@@ -28,7 +28,7 @@ func NewIRC(config *config.Config) *IRCConnection {
 	}
 }
 
-func (irc *IRCConnection) readLoop() {
+func (irc *Connection) readLoop() {
 	rb := bufio.NewReaderSize(irc.socket, 512)
 	for {
 		msg, err := rb.ReadString('\n')
@@ -43,7 +43,7 @@ func (irc *IRCConnection) readLoop() {
 	}
 }
 
-func (irc *IRCConnection) writeLoop() {
+func (irc *Connection) writeLoop() {
 	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
 	for {
 		select {
@@ -69,7 +69,7 @@ func (irc *IRCConnection) writeLoop() {
 	}
 }
 
-func (irc *IRCConnection) doQuit() {
+func (irc *Connection) doQuit() {
 	irc.SendRaw("QUIT")
 	select {
 	case <-time.After(2 * time.Second):
@@ -77,23 +77,23 @@ func (irc *IRCConnection) doQuit() {
 	}
 }
 
-func (irc *IRCConnection) Quit() {
+func (irc *Connection) Quit() {
 	irc.quitting <- true
 }
 
-func (irc *IRCConnection) SendRaw(line string) {
+func (irc *Connection) SendRaw(line string) {
 	if !strings.HasSuffix(line, "\r\n") {
 		line = line + "\r\n"
 	}
 	irc.writeChan <- line
 }
 
-func (irc *IRCConnection) SendRawf(formatLine string, args ...interface{}) {
+func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 	irc.SendRaw(fmt.Sprintf(formatLine, args...))
 }
 
-func (irc *IRCConnection) Init() {
-	irc.callbacks = make(map[string][]func(*IRCConnection, *Message))
+func (irc *Connection) Init() {
+	irc.callbacks = make(map[string][]func(*Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
@@ -103,7 +103,7 @@ func (irc *IRCConnection) Init() {
 	irc.initialised = true
 }
 
-func (irc *IRCConnection) Connect() error {
+func (irc *Connection) Connect() error {
 	var err error
 	if irc.ClientConfig.UseTLS {
 		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
@@ -129,13 +129,13 @@ func (irc *IRCConnection) Connect() error {
 	return nil
 }
 
-func (irc *IRCConnection) Wait() {
+func (irc *Connection) Wait() {
 	<-irc.Finished
 	close(irc.writeChan)
 	_ = irc.socket.Close()
 }
 
-func (irc *IRCConnection) ConnectAndWait() error {
+func (irc *Connection) ConnectAndWait() error {
 	if !irc.initialised {
 		irc.Init()
 	}

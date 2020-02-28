@@ -27,7 +27,7 @@ type ConnectionConfig struct {
 	Timeout   time.Duration
 }
 
-type IRCConnection struct {
+type Connection struct {
 	ConnConfig   ConnectionConfig
 	ClientConfig ClientConfig
 	socket       net.Conn
@@ -36,7 +36,7 @@ type IRCConnection struct {
 	Finished     chan bool
 	writeChan    chan string
 	errorChannel chan error
-	callbacks    map[string][]func(*IRCConnection, *Message)
+	callbacks    map[string][]func(*Connection, *Message)
 	signals      chan os.Signal
 	initialised  bool
 }
@@ -52,5 +52,5 @@ type Message struct {
 
 type Callback struct {
 	Verb     string
-	Callback func(*IRCConnection, *Message)
+	Callback func(*Connection, *Message)
 }
