@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/greboid/irc/config"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -37,7 +36,6 @@ func (irc *Connection) readLoop() {
 			break
 		}
 		irc.lastMessage = time.Now()
-		log.Printf("-> %v", msg)
 		message := irc.parseMesage(msg)
 		go irc.runCallbacks(message)
 	}
@@ -55,7 +53,6 @@ func (irc *Connection) writeLoop() {
 			if !ok || b == "" || irc.socket == nil {
 				break
 			}
-			log.Printf("<- %v", b)
 			_, err := irc.socket.Write([]byte(b))
 			if err != nil {
 				irc.errorChannel <- err
