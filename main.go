@@ -14,6 +14,7 @@ func main() {
 	db := database.New(conf.DBPath)
 	connection := irc.NewIRC(conf)
 	go web.NewWeb(conf, connection, db).StartWeb()
+	log.Print("Adding callbacks")
 	connection.AddCallback("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN %s", conf.Channel)
 	})
@@ -31,4 +32,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Exiting")
 }

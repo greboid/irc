@@ -1,6 +1,9 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+	"log"
+)
 
 type Config struct {
 	WebPort  int
@@ -12,13 +15,14 @@ type Config struct {
 }
 
 func GetConfig() *Config {
-	viper.SetDefault("SERVER", "")
+	log.Print("Loading config")
 	viper.SetDefault("PASSWORD", "")
 	viper.SetDefault("NICK", "")
 	viper.SetDefault("WEB_PORT", 8000)
 	viper.SetDefault("CHANNEL", "")
 	viper.SetDefault("DB_PATH", "./data/db")
 	viper.AutomaticEnv()
+	log.Print("Returning config")
 	return &Config{
 		WebPort:  viper.GetInt("WEB_PORT"),
 		Channel:  viper.GetString("CHANNEL"),

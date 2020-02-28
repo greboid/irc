@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/greboid/irc/config"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 )
 
 func NewIRC(config *config.Config) *Connection {
+	log.Print("Creating new IRC")
 	return &Connection{
 		ClientConfig: ClientConfig{
 			Server:   config.Server,
@@ -90,6 +92,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 }
 
 func (irc *Connection) Init() {
+	log.Print("Initialising IRC")
 	irc.callbacks = make(map[string][]func(*Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
@@ -101,6 +104,7 @@ func (irc *Connection) Init() {
 }
 
 func (irc *Connection) Connect() error {
+	log.Printf("Connecting to IRC: %s", irc.ClientConfig.Server)
 	var err error
 	if irc.ClientConfig.UseTLS {
 		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
@@ -127,9 +131,11 @@ func (irc *Connection) Connect() error {
 }
 
 func (irc *Connection) Wait() {
+	log.Print("Waiting for IRC to finish")
 	<-irc.Finished
 	close(irc.writeChan)
 	_ = irc.socket.Close()
+	log.Print("IRC Finished")
 }
 
 func (irc *Connection) ConnectAndWait() error {

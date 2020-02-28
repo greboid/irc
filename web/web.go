@@ -17,6 +17,7 @@ type Web struct {
 }
 
 func NewWeb(conf *config.Config, irc *irc.Connection, db *database.DB) *Web {
+	log.Print("Initialising web")
 	return &Web{
 		conf: conf,
 		irc:  irc,
@@ -25,6 +26,7 @@ func NewWeb(conf *config.Config, irc *irc.Connection, db *database.DB) *Web {
 }
 
 func (web *Web) StartWeb() {
+	log.Printf("Starting web: %d", web.conf.WebPort)
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -33,6 +35,7 @@ func (web *Web) StartWeb() {
 	if err != nil {
 		log.Panicf("Unable to start web server: %v", err)
 	}
+	log.Print("Finished web")
 }
 
 func (web *Web) testMessage(context echo.Context) error {

@@ -11,6 +11,7 @@ type DB struct {
 }
 
 func New(path string) *DB {
+	log.Print("Initialising database")
 	db := &DB{
 		path: path,
 		db:   nil,
@@ -24,6 +25,7 @@ func New(path string) *DB {
 	if err := db.db.SetConfig(config); err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Initialised database")
 	return db
 }
 
@@ -44,6 +46,7 @@ func (db *DB) CheckKey(key string) bool {
 }
 
 func (db *DB) CreateKey(key string) error {
+	log.Printf("Creating key: %s", key)
 	err := db.db.Update(func(tx *buntdb.Tx) error {
 		_, _, err := tx.Set(key, key, nil)
 		return err
