@@ -7,22 +7,22 @@ import (
 
 type DB struct {
 	path string
-	db   *buntdb.DB
+	Db   *buntdb.DB
 }
 
 func New(path string) *DB {
 	log.Print("Initialising database")
 	db := &DB{
 		path: path,
-		db:   nil,
+		Db:   nil,
 	}
 	db.InitDB()
 	var config buntdb.Config
-	if err := db.db.ReadConfig(&config); err != nil {
+	if err := db.Db.ReadConfig(&config); err != nil {
 		log.Fatal(err)
 	}
 	config.SyncPolicy = buntdb.Always
-	if err := db.db.SetConfig(config); err != nil {
+	if err := db.Db.SetConfig(config); err != nil {
 		log.Fatal(err)
 	}
 	log.Print("Initialised database")
@@ -31,7 +31,7 @@ func New(path string) *DB {
 
 func (db *DB) CheckKey(key string) bool {
 	var valid bool
-	err := db.db.View(func(tx *buntdb.Tx) error {
+	err := db.Db.View(func(tx *buntdb.Tx) error {
 		_, err := tx.Get(key)
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func (db *DB) CheckKey(key string) bool {
 
 func (db *DB) CreateKey(key string) error {
 	log.Printf("Creating key: %s", key)
-	err := db.db.Update(func(tx *buntdb.Tx) error {
+	err := db.Db.Update(func(tx *buntdb.Tx) error {
 		_, _, err := tx.Set(key, key, nil)
 		return err
 	})
@@ -59,5 +59,5 @@ func (db *DB) InitDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.db = instance
+	db.Db = instance
 }

@@ -12,6 +12,7 @@ type Config struct {
 	Password string
 	Nickname string
 	DBPath   string
+	AdminKey string
 }
 
 func GetConfig() *Config {
@@ -21,6 +22,7 @@ func GetConfig() *Config {
 	viper.SetDefault("WEB_PORT", 8000)
 	viper.SetDefault("CHANNEL", "")
 	viper.SetDefault("DB_PATH", "./data/db")
+	viper.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
 	viper.AutomaticEnv()
 	log.Print("Returning config")
 	return &Config{
@@ -30,5 +32,6 @@ func GetConfig() *Config {
 		Password: viper.GetString("PASSWORD"),
 		Nickname: viper.GetString("NICK"),
 		DBPath:   viper.GetString("DB_PATH"),
+		AdminKey: viper.GetString("ADMIN_KEY"),
 	}
 }
