@@ -30,6 +30,17 @@ func (h *capabilityHandler) install(c *Connection) {
 	h.mutex = &sync.Mutex{}
 
 	c.AddCallback("CAP", h.handleCaps)
+	c.AddCallback("001", h.handleRegistered)
+}
+
+func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
+	h.finished = true
+	h.listing = false
+	h.requested = false
+}
+
+func (h *capabilityHandler) Negotiate(irc *Connection) {
+	irc.SendRaw("CAP LS 302")
 }
 
 func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
@@ -79,7 +90,7 @@ func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[capability
 }
 
 func (h *capabilityHandler) capReq(c *Connection) {
-	reqs := []string{}
+	var reqs []string
 	for capability := range h.available {
 		_, ok := h.wanted[capability.name]
 		if ok {
@@ -96,6 +107,7 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	}
 	h.mutex.Unlock()
 	if len(h.acked) == len(h.wanted) {
+		h.finished = true
 		c.SendRaw("CAP END")
 	}
 }

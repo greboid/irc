@@ -119,16 +119,16 @@ func (irc *Connection) Connect() error {
 
 	go irc.readLoop()
 	go irc.writeLoop()
+
+	irc.AddCallbacks(defaultCallbacks)
 	irc.capabilityHandler.install(irc)
 	irc.nickHandler.install(irc)
+	irc.capabilityHandler.Negotiate(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
-	irc.SendRaw("CAP LS 302")
 	irc.SendRawf("NICK %s", irc.ClientConfig.Nick)
 	irc.SendRawf("USER %s 0 * :%s", irc.ClientConfig.User, irc.ClientConfig.Realname)
-
-	irc.AddCallbacks(defaultCallbacks)
 
 	return nil
 }
