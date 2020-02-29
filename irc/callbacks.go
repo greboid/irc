@@ -33,7 +33,7 @@ func (irc *Connection) runCallbacks(m *Message) {
 }
 
 func pong(c *Connection, m *Message) {
-	c.SendRawf("PONG :%v", m.Params)
+	c.SendRawf("PONG :%v", m.ParamsArray[1])
 }
 
 func quitOnError(c *Connection, _ *Message) {
