@@ -21,5 +21,7 @@ func (h *debugHandler) handleMessage(c *Connection, m *Message) {
 }
 
 func (h *debugHandler) handleOutboundMessage(_ *Connection, m *string) {
-	log.Printf("Out: %s", *m)
+	if h.conf.Debug {
+		log.Printf("Out: %s", *m)
+	}
 }
