@@ -55,8 +55,12 @@ func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 	case "NAK":
 		h.handleNAK(tokenised[1:])
 		break
-	default:
-		//TODO: Support NEW and DEL
+	case "NEW":
+		h.handleLS(c, tokenised[1:])
+		break
+	case "DEL":
+		h.handleDel(c, tokenised[1:])
+		break
 	}
 }
 
@@ -115,4 +119,13 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 
 func (h *capabilityHandler) handleNAK(tokenised []string) {
 	delete(h.wanted, tokenised[0])
+}
+
+func (h *capabilityHandler) handleDel(c *Connection, tokenised []string) {
+	toRemove := h.parseCapabilities(tokenised)
+	for remove := range toRemove {
+		delete(h.wanted, remove.name)
+		delete(h.available, remove)
+		c.Bus.Publish("-cap", remove.name)
+	}
 }
