@@ -23,7 +23,7 @@ func NewIRC(config *config.Config) *Connection {
 			Nick:     config.Nickname,
 			User:     config.Nickname,
 			Realname: config.Nickname,
-			UseTLS:   true,
+			UseTLS:   config.TLS,
 		},
 		ConnConfig: DefaultConnectionConfig,
 	}
