@@ -30,7 +30,7 @@ func NewIRC(config *config.Config) *Connection {
 }
 
 func (irc *Connection) readLoop() {
-	rb := bufio.NewReaderSize(irc.socket, 512)
+	rb := bufio.NewReaderSize(irc.socket, 8192+512)
 	for {
 		msg, err := rb.ReadString('\n')
 		if err != nil {
@@ -100,6 +100,7 @@ func (irc *Connection) Init() {
 	irc.Finished = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
+	irc.capsWanted = append(irc.capsWanted, "echo-message", "message-tags", "multi-prefix")
 	irc.initialised = true
 }
 
@@ -122,6 +123,9 @@ func (irc *Connection) Connect() error {
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
+	irc.capListingEnded = false
+	irc.capRequestingEnded = false
+	irc.SendRaw("CAP LS 302")
 	irc.SendRawf("NICK %s", irc.ClientConfig.Nick)
 	irc.SendRawf("USER %s 0 * :%s", irc.ClientConfig.User, irc.ClientConfig.Realname)
 
