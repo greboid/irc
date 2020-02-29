@@ -10,7 +10,7 @@ type debugHandler struct {
 }
 
 func (h *debugHandler) install(c *Connection) {
-	c.AddCallback("*", h.handleMessage)
+	c.AddInboundHandler("*", h.handleMessage)
 }
 
 func (h *debugHandler) handleMessage(c *Connection, m *Message) {

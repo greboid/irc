@@ -17,10 +17,10 @@ func (h *nickHandler) install(c *Connection) {
 	h.letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	h.preferred = c.ClientConfig.Nick
 	h.current = h.preferred
-	c.AddCallback("432", h.erroneusNickame)
-	c.AddCallback("433", h.nicknameInUse)
-	c.AddCallback("436", h.nicknameCollision)
-	c.AddCallback("NICK", h.nicknameChanged)
+	c.AddInboundHandler("432", h.erroneusNickame)
+	c.AddInboundHandler("433", h.nicknameInUse)
+	c.AddInboundHandler("436", h.nicknameCollision)
+	c.AddInboundHandler("NICK", h.nicknameChanged)
 }
 
 func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {

@@ -93,7 +93,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.callbacks = make(map[string][]func(*Connection, *Message))
+	irc.handlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
@@ -120,9 +120,10 @@ func (irc *Connection) Connect() error {
 	go irc.readLoop()
 	go irc.writeLoop()
 
-	irc.AddCallbacks(defaultCallbacks)
+	irc.AddInboundHandlers(defaultInboundHandlers)
 	irc.capabilityHandler.install(irc)
 	irc.nickHandler.install(irc)
+	irc.debugHandler.install(irc)
 	irc.capabilityHandler.Negotiate(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)

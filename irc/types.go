@@ -36,7 +36,7 @@ type Connection struct {
 	Finished          chan bool
 	writeChan         chan string
 	errorChannel      chan error
-	callbacks         map[string][]func(*Connection, *Message)
+	handlers          map[string][]func(*Connection, *Message)
 	signals           chan os.Signal
 	initialised       bool
 	registered        bool
@@ -54,7 +54,7 @@ type Message struct {
 	Params      string
 }
 
-type Callback struct {
-	Verb     string
-	Callback func(*Connection, *Message)
+type InboundHandler struct {
+	Verb    string
+	Handler func(*Connection, *Message)
 }

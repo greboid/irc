@@ -15,15 +15,15 @@ func main() {
 	connection := irc.NewIRC(conf)
 	go web.NewWeb(conf, connection, db).StartWeb()
 	log.Print("Adding callbacks")
-	connection.AddCallback("001", func(c *irc.Connection, m *irc.Message) {
+	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN %s", conf.Channel)
 	})
-	connection.AddCallback("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
+	connection.AddInboundHandler("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
 		if strings.ToLower(m.Params) == conf.Channel+" hi" {
 			c.SendRawf("PRIVMSG %s Hey.", conf.Channel)
 		}
 	})
-	connection.AddCallback("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
+	connection.AddInboundHandler("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
 		if strings.ToLower(m.Params) == conf.Channel+" bye" {
 			c.Quit()
 		}

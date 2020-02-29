@@ -29,8 +29,8 @@ func (h *capabilityHandler) install(c *Connection) {
 	h.finished = false
 	h.mutex = &sync.Mutex{}
 
-	c.AddCallback("CAP", h.handleCaps)
-	c.AddCallback("001", h.handleRegistered)
+	c.AddInboundHandler("CAP", h.handleCaps)
+	c.AddInboundHandler("001", h.handleRegistered)
 }
 
 func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
