@@ -27,6 +27,7 @@ func (irc *Connection) AddCallback(s string, f func(c *Connection, m *Message)) 
 
 func (irc *Connection) runCallbacks(m *Message) {
 	callbacks := irc.callbacks[m.Verb]
+	callbacks = append(callbacks, irc.callbacks["*"]...)
 	for _, callback := range callbacks {
 		go callback(irc, m)
 	}
