@@ -39,7 +39,7 @@ func (irc *Connection) readLoop() {
 		}
 		irc.lastMessage = time.Now()
 		message := irc.parseMesage(msg)
-		go irc.runCallbacks(message)
+		go irc.runInboundHandlers(message)
 	}
 }
 
@@ -55,6 +55,7 @@ func (irc *Connection) writeLoop() {
 			if !ok || b == "" || irc.socket == nil {
 				break
 			}
+			irc.runOutboundHandlers(&b)
 			_, err := irc.socket.Write([]byte(b))
 			if err != nil {
 				irc.errorChannel <- err
@@ -93,7 +94,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.handlers = make(map[string][]func(*Connection, *Message))
+	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
