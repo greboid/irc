@@ -104,6 +104,7 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	h.mutex.Lock()
 	for _, token := range tokenised {
 		h.acked[token] = true
+		c.Bus.Publish("+cap", token)
 	}
 	h.mutex.Unlock()
 	if len(h.acked) == len(h.wanted) {
