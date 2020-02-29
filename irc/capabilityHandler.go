@@ -55,25 +55,27 @@ func (h *capabilityHandler) handleLS(c *Connection, tokenised []string) {
 	} else {
 		h.listing = false
 	}
-	h.parseCapabilities(tokenised)
+	h.available = h.parseCapabilities(tokenised)
 	if !h.listing {
 		h.capReq(c)
 	}
 }
 
-func (h *capabilityHandler) parseCapabilities(tokenised []string) {
+func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[capabilityStruct]bool {
+	capabilities := map[capabilityStruct]bool{}
 	for _, token := range tokenised {
 		capability := capabilityStruct{}
 		if strings.Contains(token, "=") {
-			values := strings.Split(token, "=")
+			values := strings.SplitN(token, "=", 2)
 			capability.name = values[0]
 			capability.values = values[1]
 		} else {
 			capability.name = token
 			capability.values = ""
 		}
-		h.available[capability] = true
+		capabilities[capability] = true
 	}
+	return capabilities
 }
 
 func (h *capabilityHandler) capReq(c *Connection) {
