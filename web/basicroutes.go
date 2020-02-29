@@ -12,6 +12,6 @@ func addBasicRoutes(e *echo.Echo, web *Web) {
 
 func (web *Web) sendMessage(context echo.Context) error {
 	message := context.Param("message")
-	go web.irc.SendRawf("PRIVMSG %s %s", web.conf.Channel, message)
+	go web.irc.SendRawf("PRIVMSG %s :%s", web.conf.Channel, message)
 	return context.String(http.StatusOK, "Done")
 }
