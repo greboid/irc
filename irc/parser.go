@@ -3,8 +3,7 @@ package irc
 import "strings"
 
 func (irc *Connection) parseMesage(line string) *Message {
-	line = strings.TrimSuffix(line, "\n")
-	line = strings.TrimSuffix(line, "\r")
+	line = strings.TrimRight(line, "\r\n")
 	if len(line) < 5 {
 		panic("//todo handle this nicely")
 	}
