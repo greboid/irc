@@ -63,18 +63,16 @@ func (h *capabilityHandler) handleLS(c *Connection, tokenised []string) {
 
 func (h *capabilityHandler) parseCapabilities(tokenised []string) {
 	for _, token := range tokenised {
+		capability := capabilityStruct{}
 		if strings.Contains(token, "=") {
 			values := strings.Split(token, "=")
-			h.available[capabilityStruct{
-				name:   values[0],
-				values: values[1],
-			}] = true
+			capability.name = values[0]
+			capability.values = values[1]
 		} else {
-			h.available[capabilityStruct{
-				name:   token,
-				values: "",
-			}] = true
+			capability.name = token
+			capability.values = ""
 		}
+		h.available[capability] = true
 	}
 }
 
