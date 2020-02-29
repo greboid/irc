@@ -120,6 +120,7 @@ func (irc *Connection) Connect() error {
 	go irc.readLoop()
 	go irc.writeLoop()
 	irc.capabilityHandler.install(irc)
+	irc.nickHandler.install(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
