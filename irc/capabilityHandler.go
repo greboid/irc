@@ -79,17 +79,21 @@ func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[capability
 }
 
 func (h *capabilityHandler) capReq(c *Connection) {
+	reqs := []string{}
 	for capability := range h.available {
 		_, ok := h.wanted[capability.name]
 		if ok {
-			c.SendRawf("CAP REQ :%s", capability.name)
+			reqs = append(reqs, capability.name)
 		}
 	}
+	c.SendRawf("CAP REQ :%s", strings.Join(reqs, " "))
 }
 
 func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	h.mutex.Lock()
-	h.acked[tokenised[0]] = true
+	for _, token := range tokenised {
+		h.acked[token] = true
+	}
 	h.mutex.Unlock()
 	if len(h.acked) == len(h.wanted) {
 		c.SendRaw("CAP END")
