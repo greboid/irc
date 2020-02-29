@@ -14,6 +14,7 @@ type Config struct {
 	DBPath   string
 	AdminKey string
 	TLS      bool
+	Debug    bool
 }
 
 func GetConfig() *Config {
@@ -25,6 +26,7 @@ func GetConfig() *Config {
 	viper.SetDefault("CHANNEL", "")
 	viper.SetDefault("DB_PATH", "./data/db")
 	viper.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
+	viper.SetDefault("DEBUG", false)
 	viper.AutomaticEnv()
 	log.Print("Returning config")
 	return &Config{
@@ -36,5 +38,6 @@ func GetConfig() *Config {
 		DBPath:   viper.GetString("DB_PATH"),
 		AdminKey: viper.GetString("ADMIN_KEY"),
 		TLS:      viper.GetBool("TLS"),
+		Debug:    viper.GetBool("DEBUG"),
 	}
 }

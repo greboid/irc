@@ -42,6 +42,7 @@ type Connection struct {
 	registered        bool
 	capabilityHandler capabilityHandler
 	nickHandler       nickHandler
+	debugHandler      debugHandler
 }
 
 type Message struct {
