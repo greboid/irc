@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/greboid/irc/config"
+	messagebus "github.com/vardius/message-bus"
 	"log"
 	"net"
 	"os"
@@ -103,6 +104,7 @@ func (irc *Connection) Init() {
 	irc.signals = make(chan os.Signal, 1)
 	irc.Finished = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	irc.Bus = messagebus.New(10)
 
 	irc.initialised = true
 }

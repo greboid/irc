@@ -2,6 +2,7 @@ package irc
 
 import (
 	"github.com/greboid/irc/config"
+	"github.com/vardius/message-bus"
 	"net"
 	"os"
 	"time"
@@ -46,6 +47,7 @@ type Connection struct {
 	capabilityHandler capabilityHandler
 	nickHandler       nickHandler
 	debugHandler      debugHandler
+	Bus               messagebus.MessageBus
 }
 
 type Message struct {
