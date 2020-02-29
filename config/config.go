@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/spf13/viper"
 	"log"
+	"path/filepath"
 )
 
 type Config struct {
@@ -17,27 +18,48 @@ type Config struct {
 	Debug    bool
 }
 
+func setDefault(conf *viper.Viper) {
+	conf.SetDefault("SERVER", "")
+	conf.SetDefault("PASSWORD", "")
+	conf.SetDefault("TLS", true)
+	conf.SetDefault("NICK", "")
+	conf.SetDefault("WEB_PORT", 8000)
+	conf.SetDefault("CHANNEL", "")
+	conf.SetDefault("DB_PATH", "./data/db")
+	conf.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
+	conf.SetDefault("DEBUG", false)
+}
+
+func getConfig(conf *viper.Viper) {
+	conf.SetConfigName("config")
+	conf.SetConfigType("yaml")
+	conf.AddConfigPath(filepath.Join("$XDG_CONFIG", ".girc"))
+	conf.AddConfigPath(filepath.Join("$XDG_CONFIG_HOME", ".girc"))
+	conf.AddConfigPath(filepath.Join("$HOME", "config", ".girc"))
+	conf.AddConfigPath(filepath.Join("$HOME", ".girc"))
+	conf.AddConfigPath(".")
+	if err := conf.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Printf("Error reading config file: %v", err)
+		}
+	}
+}
+
 func GetConfig() *Config {
 	log.Print("Loading config")
-	viper.SetDefault("PASSWORD", "")
-	viper.SetDefault("NICK", "")
-	viper.SetDefault("TLS", true)
-	viper.SetDefault("WEB_PORT", 8000)
-	viper.SetDefault("CHANNEL", "")
-	viper.SetDefault("DB_PATH", "./data/db")
-	viper.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
-	viper.SetDefault("DEBUG", false)
-	viper.AutomaticEnv()
-	log.Print("Returning config")
+	conf := viper.New()
+	conf.AutomaticEnv()
+	setDefault(conf)
+	getConfig(conf)
 	return &Config{
-		WebPort:  viper.GetInt("WEB_PORT"),
-		Channel:  viper.GetString("CHANNEL"),
-		Server:   viper.GetString("SERVER"),
-		Password: viper.GetString("PASSWORD"),
-		Nickname: viper.GetString("NICK"),
-		DBPath:   viper.GetString("DB_PATH"),
-		AdminKey: viper.GetString("ADMIN_KEY"),
-		TLS:      viper.GetBool("TLS"),
-		Debug:    viper.GetBool("DEBUG"),
+		WebPort:  conf.GetInt("WEB_PORT"),
+		Channel:  conf.GetString("CHANNEL"),
+		Server:   conf.GetString("SERVER"),
+		Password: conf.GetString("PASSWORD"),
+		Nickname: conf.GetString("NICK"),
+		DBPath:   conf.GetString("DB_PATH"),
+		AdminKey: conf.GetString("ADMIN_KEY"),
+		TLS:      conf.GetBool("TLS"),
+		Debug:    conf.GetBool("DEBUG"),
 	}
 }

@@ -26,6 +26,7 @@ func NewIRC(config *config.Config) *Connection {
 			UseTLS:   config.TLS,
 		},
 		ConnConfig: DefaultConnectionConfig,
+		conf:       config,
 	}
 }
 
@@ -96,6 +97,7 @@ func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
+	irc.debugHandler = debugHandler{conf: irc.conf}
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)

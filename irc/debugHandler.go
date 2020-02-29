@@ -6,7 +6,7 @@ import (
 )
 
 type debugHandler struct {
-	conf config.Config
+	conf *config.Config
 }
 
 func (h *debugHandler) install(c *Connection) {

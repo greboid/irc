@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"github.com/greboid/irc/config"
 	"net"
 	"os"
 	"time"
@@ -28,6 +29,7 @@ type ConnectionConfig struct {
 }
 
 type Connection struct {
+	conf              *config.Config
 	ConnConfig        ConnectionConfig
 	ClientConfig      ClientConfig
 	socket            net.Conn
