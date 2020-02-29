@@ -94,13 +94,13 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
 	irc.callbacks = make(map[string][]func(*Connection, *Message))
+	irc.capabilityHandler = capabilityHandler{}
 	irc.writeChan = make(chan string, 10)
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
 	irc.Finished = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	irc.capsWanted = append(irc.capsWanted, "echo-message", "message-tags", "multi-prefix")
 	irc.initialised = true
 }
 
@@ -119,12 +119,10 @@ func (irc *Connection) Connect() error {
 
 	go irc.readLoop()
 	go irc.writeLoop()
-
+	irc.capabilityHandler.install(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
-	irc.capListingEnded = false
-	irc.capRequestingEnded = false
 	irc.SendRaw("CAP LS 302")
 	irc.SendRawf("NICK %s", irc.ClientConfig.Nick)
 	irc.SendRawf("USER %s 0 * :%s", irc.ClientConfig.User, irc.ClientConfig.Realname)

@@ -28,24 +28,19 @@ type ConnectionConfig struct {
 }
 
 type Connection struct {
-	ConnConfig         ConnectionConfig
-	ClientConfig       ClientConfig
-	socket             net.Conn
-	lastMessage        time.Time
-	quitting           chan bool
-	Finished           chan bool
-	writeChan          chan string
-	errorChannel       chan error
-	callbacks          map[string][]func(*Connection, *Message)
-	signals            chan os.Signal
-	initialised        bool
-	capsAdvertised     []string
-	capsWanted         []string
-	capsGained         []string
-	registered         bool
-	capListingEnded    bool
-	capRequestingEnded bool
-	capsAcknowledged   bool
+	ConnConfig        ConnectionConfig
+	ClientConfig      ClientConfig
+	socket            net.Conn
+	lastMessage       time.Time
+	quitting          chan bool
+	Finished          chan bool
+	writeChan         chan string
+	errorChannel      chan error
+	callbacks         map[string][]func(*Connection, *Message)
+	signals           chan os.Signal
+	initialised       bool
+	registered        bool
+	capabilityHandler capabilityHandler
 }
 
 type Message struct {
