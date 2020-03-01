@@ -9,3 +9,4 @@
 *.iml
 data
 config.yaml
+.cache
