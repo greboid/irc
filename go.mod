@@ -8,4 +8,5 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/tidwall/buntdb v1.1.2
 	github.com/vardius/message-bus v1.1.4
+	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
 )
