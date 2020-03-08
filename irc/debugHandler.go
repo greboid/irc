@@ -14,7 +14,7 @@ func (h *debugHandler) install(c *Connection) {
 	c.AddOutboundHandler(h.handleOutboundMessage)
 }
 
-func (h *debugHandler) handleMessage(c *Connection, m *Message) {
+func (h *debugHandler) handleMessage(_ *Connection, m *Message) {
 	if h.conf.Debug {
 		log.Printf("In : %s %s %s", m.Source, m.Verb, m.Params)
 	}
