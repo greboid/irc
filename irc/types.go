@@ -35,6 +35,7 @@ type Connection struct {
 	ClientConfig      ClientConfig
 	socket            net.Conn
 	lastMessage       time.Time
+	saslFinished      chan bool
 	quitting          chan bool
 	Finished          chan bool
 	writeChan         chan string
@@ -48,6 +49,7 @@ type Connection struct {
 	nickHandler       nickHandler
 	debugHandler      debugHandler
 	Bus               messagebus.MessageBus
+	saslStarted       bool
 }
 
 type Message struct {

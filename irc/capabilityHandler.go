@@ -1,8 +1,10 @@
 package irc
 
 import (
+	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 type capabilityHandler struct {
@@ -22,7 +24,7 @@ type capabilityStruct struct {
 
 func (h *capabilityHandler) install(c *Connection) {
 	h.available = map[capabilityStruct]bool{}
-	h.wanted = map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true}
+	h.wanted = map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true}
 	h.acked = map[string]bool{}
 	h.listing = false
 	h.requested = false
@@ -109,10 +111,20 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	for _, token := range tokenised {
 		h.acked[token] = true
 		c.Bus.Publish("+cap", token)
+		if _, ok := h.acked["sasl"]; ok {
+			c.saslStarted = true
+		}
 	}
 	h.mutex.Unlock()
 	if len(h.acked) == len(h.wanted) {
 		h.finished = true
+		if _, ok := h.acked["sasl"]; ok {
+			log.Print("Waiting for SASL")
+			select {
+			case <-c.saslFinished:
+			case <-time.After(5 * time.Second):
+			}
+		}
 		c.SendRaw("CAP END")
 	}
 }
