@@ -63,6 +63,9 @@ func (irc *Connection) writeLoop() {
 				irc.errorChannel <- err
 				break
 			}
+		case err := <-irc.errorChannel:
+			log.Printf("IRC Error occurred: %s", err.Error())
+			irc.Finished <- true
 		case <-irc.signals:
 			go irc.doQuit()
 		case <-irc.quitting:
@@ -100,6 +103,7 @@ func (irc *Connection) Init() {
 	irc.capabilityHandler = capabilityHandler{}
 	irc.debugHandler = debugHandler{conf: irc.conf}
 	irc.writeChan = make(chan string, 10)
+	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
 	irc.Finished = make(chan bool, 1)
