@@ -1,6 +1,15 @@
 package bot
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/subtle"
+	"encoding/hex"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -130,9 +139,7 @@ type Repository struct {
 	LabelsURL        string      `json:"labels_url"`
 	ReleasesURL      string      `json:"releases_url"`
 	DeploymentsURL   string      `json:"deployments_url"`
-	CreatedAt        time.Time   `json:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at"`
-	PushedAt         time.Time   `json:"pushed_at"`
 	GitURL           string      `json:"git_url"`
 	SSHURL           string      `json:"ssh_url"`
 	CloneURL         string      `json:"clone_url"`
@@ -174,4 +181,23 @@ type GitHubCommitHook struct {
 	UpdatedAt   time.Time   `json:"updated_at"`
 	Repository  Repository  `json:"repository"`
 	Sender      UserAccount `json:"sender"`
+}
+
+// payload is the raw body received, signature is the X-GitHub-Delivery header, *githubSecret is the shared secret as text
+func CheckGithubSecret(r *http.Request, githubSecret string) bool {
+	//Get body, put it back
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return false
+	}
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	//Get signature
+	gotHash := strings.SplitN(r.Header.Get("X-Hub-Signature"), "=", 2)
+	if gotHash[0] != "sha1" {
+		return false
+	}
+	h := hmac.New(sha1.New, []byte(githubSecret))
+	h.Write(bodyBytes)
+	expected := fmt.Sprintf("sha1=%s", hex.EncodeToString(h.Sum(nil)))
+	return len(expected) == len(gotHash[1]) && subtle.ConstantTimeCompare([]byte(expected), []byte(gotHash[1])) == 1
 }
