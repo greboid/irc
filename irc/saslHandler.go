@@ -1,7 +1,18 @@
 package irc
 
+import (
+	"encoding/base64"
+	"fmt"
+	"github.com/greboid/irc/config"
+	"log"
+	"strings"
+)
+
 type saslHandler struct {
-	authed bool
+	conf        *config.Config
+	authed      bool
+	readyToAuth bool
+	authing     bool
 }
 
 func (h *saslHandler) install(c *Connection) {
@@ -20,51 +31,94 @@ func (h *saslHandler) install(c *Connection) {
 }
 
 func (h *saslHandler) handleCapAdd(c *Connection, cap string) {
+	if cap != "sasl" || c.saslStarted {
+		return
+	}
 	if !h.authed {
 		c.saslStarted = true
 	}
+	if !checkSASLSupported(c) {
+		log.Printf("SASL Finished")
+		c.saslFinished <- true
+		return
+	}
+	h.readyToAuth = true
+	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func (h *saslHandler) handleCapDel(cap string) {
-
+func checkSASLSupported(c *Connection) bool {
+	if c.conf.SASLAuth && c.conf.SASLUser != "" && c.conf.SASLPass != "" {
+		log.Print("SASL configured")
+		var saslmethods []string
+		for key, _ := range c.capabilityHandler.available {
+			if key.name == "sasl" {
+				saslmethods = strings.Split(key.values, ",")
+			}
+		}
+		_, ok := contains(saslmethods, "PLAIN")
+		if !ok {
+			log.Printf("No supported SASL methods")
+		}
+		return ok
+	}
+	log.Print("SASL not configured")
+	return false
 }
 
-func (h *saslHandler) handleLoggedinAs(c *Connection, m *Message) {
+func (h *saslHandler) handleCapDel(_ string) {}
 
+func (h *saslHandler) handleLoggedinAs(*Connection, *Message) {}
+
+func (h *saslHandler) handleLoggedOut(*Connection, *Message) {}
+
+func (h *saslHandler) handleNickLocked(*Connection, *Message) {}
+
+func (h *saslHandler) handleAuthSuccess(c *Connection, _ *Message) {
+	log.Print("SASL Auth success")
+	c.saslFinished <- true
 }
 
-func (h *saslHandler) handleLoggedOut(c *Connection, m *Message) {
-
+func (h *saslHandler) handleAuthFail(c *Connection, _ *Message) {
+	log.Print("SASL Auth failed")
+	c.saslFinished <- true
 }
 
-func (h *saslHandler) handleNickLocked(c *Connection, m *Message) {
-
+func (h *saslHandler) handleMessageTooLong(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleAuthSuccess(c *Connection, m *Message) {
-
+func (h *saslHandler) handleAborted(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleAuthFail(c *Connection, m *Message) {
-
+func (h *saslHandler) handleAlreadyAuthed(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleMessageTooLong(c *Connection, m *Message) {
-
-}
-
-func (h *saslHandler) handleAborted(c *Connection, m *Message) {
-
-}
-
-func (h *saslHandler) handleAlreadyAuthed(c *Connection, m *Message) {
-
-}
-
-func (h *saslHandler) handleMechanisms(c *Connection, m *Message) {
-
+func (h *saslHandler) handleMechanisms(*Connection, *Message) {
 }
 
 func (h *saslHandler) handleAuthenticate(c *Connection, m *Message) {
+	if h.readyToAuth {
+		if m.Params == "+" {
+			h.authing = true
+			h.doAuth(c)
+		}
+	}
+}
 
+func (h *saslHandler) doAuth(c *Connection) {
+	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s\x00%s\x00%s", c.conf.SASLUser, c.conf.SASLUser, c.conf.SASLPass)))
+	for i := 0; i < len(encoded); i += 400 {
+		c.SendRawf("AUTHENTICATE %s", encoded[i:])
+		if len(encoded[i:]) == 400 {
+			c.SendRaw("AUTHENTICATE +")
+		}
+	}
+}
+
+func contains(s []string, e string) (*string, bool) {
+	for _, a := range s {
+		if a == e {
+			return &e, true
+		}
+	}
+	return nil, false
 }

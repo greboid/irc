@@ -16,6 +16,9 @@ type Config struct {
 	AdminKey string
 	TLS      bool
 	Debug    bool
+	SASLAuth bool
+	SASLUser string
+	SASLPass string
 }
 
 func setDefault(conf *viper.Viper) {
@@ -28,6 +31,9 @@ func setDefault(conf *viper.Viper) {
 	conf.SetDefault("DB_PATH", "./data/db")
 	conf.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
 	conf.SetDefault("DEBUG", false)
+	conf.SetDefault("SASL_AUTH", false)
+	conf.SetDefault("SASL_USER", false)
+	conf.SetDefault("SASL_PASS", false)
 }
 
 func getConfig(conf *viper.Viper) {
@@ -61,5 +67,8 @@ func GetConfig() *Config {
 		AdminKey: conf.GetString("ADMIN_KEY"),
 		TLS:      conf.GetBool("TLS"),
 		Debug:    conf.GetBool("DEBUG"),
+		SASLAuth: conf.GetBool("SASL_AUTH"),
+		SASLUser: conf.GetString("SASL_USER"),
+		SASLPass: conf.GetString("SASL_PASS"),
 	}
 }

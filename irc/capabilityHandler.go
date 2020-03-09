@@ -8,13 +8,14 @@ import (
 )
 
 type capabilityHandler struct {
-	available map[capabilityStruct]bool
-	wanted    map[string]bool
-	acked     map[string]bool
-	listing   bool
-	requested bool
-	finished  bool
-	mutex     *sync.Mutex
+	available   map[capabilityStruct]bool
+	wanted      map[string]bool
+	acked       map[string]bool
+	listing     bool
+	requested   bool
+	finished    bool
+	mutex       *sync.Mutex
+	saslHandler *saslHandler
 }
 
 type capabilityStruct struct {
@@ -30,9 +31,11 @@ func (h *capabilityHandler) install(c *Connection) {
 	h.requested = false
 	h.finished = false
 	h.mutex = &sync.Mutex{}
+	h.saslHandler = &saslHandler{conf: c.conf}
 
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
+	h.saslHandler.install(c)
 }
 
 func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
@@ -110,22 +113,25 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	h.mutex.Lock()
 	for _, token := range tokenised {
 		h.acked[token] = true
-		c.Bus.Publish("+cap", token)
-		if _, ok := h.acked["sasl"]; ok {
-			c.saslStarted = true
-		}
+		c.Bus.Publish("+cap", c, token)
 	}
 	h.mutex.Unlock()
 	if len(h.acked) == len(h.wanted) {
 		h.finished = true
 		if _, ok := h.acked["sasl"]; ok {
 			log.Print("Waiting for SASL")
-			select {
-			case <-c.saslFinished:
-			case <-time.After(5 * time.Second):
-			}
+			h.waitonSasl(c)
 		}
 		c.SendRaw("CAP END")
+	}
+}
+
+func (h *capabilityHandler) waitonSasl(c *Connection) {
+	select {
+	case <-c.saslFinished:
+		return
+	case <-time.After(5 * time.Second):
+		return
 	}
 }
 

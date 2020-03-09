@@ -99,6 +99,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
+	irc.Bus = messagebus.New(10)
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
 	irc.debugHandler = debugHandler{conf: irc.conf}
@@ -107,8 +108,8 @@ func (irc *Connection) Init() {
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
 	irc.Finished = make(chan bool, 1)
+	irc.saslFinished = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-	irc.Bus = messagebus.New(10)
 
 	irc.initialised = true
 }

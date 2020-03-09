@@ -14,7 +14,7 @@ func main() {
 	connection := irc.NewIRC(conf)
 	go web.NewWeb(conf, connection, db).StartWeb()
 	log.Print("Adding callbacks")
-	connection.AddInboundHandler("001", func(c*irc.Connection, m *irc.Message) {
+	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN :%s", conf.Channel)
 	})
 	err := connection.ConnectAndWait()
