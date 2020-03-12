@@ -1,0 +1,23 @@
+syntax = "proto3";
+package protos;
+option go_package = "protos";
+
+message ChannelMessage {
+    string channel = 1;
+    string message = 2;
+}
+
+message RawMessage {
+    string message = 1;
+}
+
+message Error {
+    string message = 1;
+}
+
+service IRCPlugin {
+    rpc sendChannelMesssage(ChannelMessage) returns (Error) {};
+    rpc sendRawMessage(RawMessage) returns (Error) {};
+}
+
+
