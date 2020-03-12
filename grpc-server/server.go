@@ -4,18 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
 	"github.com/greboid/irc/protos"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
-	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
 )
 
-func StartGRPC(conn *irc.Connection) {
+type GrpcServer struct {
+	Conn *irc.Connection
+	DB   *database.DB
+}
+
+func (s *GrpcServer) StartGRPC() {
 	certificate, err := generateSelfSignedCert()
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -25,37 +30,25 @@ func StartGRPC(conn *irc.Connection) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer(
-		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(myAuthFunction))),
-		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(myAuthFunction))),
+		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
+		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
-	protos.RegisterIRCPluginServer(grpcServer, &pluginServer{conn})
+	protos.RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn})
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Printf("Error listening: %s", err.Error())
 	}
 }
 
-func myAuthFunction(ctx context.Context) (context.Context, error) {
+func (s *GrpcServer) authPlugin(ctx context.Context) (context.Context, error) {
 	token, err := grpcauth.AuthFromMD(ctx, "bearer")
-	log.Printf("Auth: token: %v", token)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, "invalid auth token: %s", err.Error())
 	}
-	tokenInfo, err := parseToken()
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid auth token: %v", err)
+	if !s.DB.CheckPlugin(token) {
+		return nil, status.Errorf(codes.Unauthenticated, "access denied")
 	}
-	grpcctxtags.Extract(ctx).Set("auth.sub", userClaimFromToken())
-	newCtx := context.WithValue(ctx, "tokenInfo", tokenInfo)
-	return newCtx, nil
-}
-
-func parseToken() (struct{}, error) {
-	return struct{}{}, nil
-}
-
-func userClaimFromToken() string {
-	return "foobar"
+	return ctx, nil
 }
 
 type pluginServer struct {

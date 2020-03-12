@@ -108,7 +108,7 @@ func (db *DB) CheckPlugin(key string) bool {
 	return false
 }
 
-func (db *DB) createUser(name string, token string) error {
+func (db *DB) CreateUser(name string, token string) error {
 	user := User{
 		Name:  name,
 		Token: token,
@@ -121,7 +121,7 @@ func (db *DB) createUser(name string, token string) error {
 	return db.setKey("users", string(value))
 }
 
-func (db *DB) createPlugin(name string, token string) error {
+func (db *DB) CreatePlugin(name string, token string) error {
 	plugin := Plugin{
 		Name:  name,
 		Token: token,

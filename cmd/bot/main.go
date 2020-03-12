@@ -15,12 +15,13 @@ func main() {
 	conf := config.GetConfig()
 	db := database.New(conf.DBPath)
 	connection := irc.NewIRC(conf)
+	grpc := grpcserver.GrpcServer{Conn: connection, DB: db}
 	go web.NewWeb(conf, connection, db).StartWeb()
 	log.Print("Adding callbacks")
 	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN :%s", conf.Channel)
 	})
-	go grpcserver.StartGRPC(connection)
+	go grpc.StartGRPC()
 	err := connection.ConnectAndWait()
 	if err != nil {
 		log.Fatal(err)

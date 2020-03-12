@@ -3,12 +3,21 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/greboid/irc/config"
 	"github.com/greboid/irc/protos"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 	"log"
 )
+
+func ctxWithToken(ctx context.Context, scheme string, token string) context.Context {
+	md := metadata.Pairs("authorization", fmt.Sprintf("%s %v", scheme, token))
+	nCtx := metautils.NiceMD(md).ToOutgoing(ctx)
+	return nCtx
+}
 
 func main() {
 	conf := config.GetConfig()
@@ -19,7 +28,8 @@ func main() {
 	}
 	defer conn.Close()
 	client := protos.NewIRCPluginClient(conn)
-	_, err = client.SendChannelMesssage(context.Background(), &protos.ChannelMessage{
+	context.Background()
+	_, err = client.SendChannelMesssage(ctxWithToken(context.Background(), "bearer", "bad_token"), &protos.ChannelMessage{
 		Channel: conf.Channel,
 		Message: "RPC",
 	})
