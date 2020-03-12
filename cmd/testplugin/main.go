@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/greboid/irc/config"
-	"github.com/greboid/irc/protos"
+	"github.com/greboid/irc/rpc"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,9 +27,9 @@ func main() {
 		log.Fatalf("failed to fake plugin: %v", err)
 	}
 	defer conn.Close()
-	client := protos.NewIRCPluginClient(conn)
+	client := rpc.NewIRCPluginClient(conn)
 	context.Background()
-	_, err = client.SendChannelMesssage(ctxWithToken(context.Background(), "bearer", "bad_token"), &protos.ChannelMessage{
+	_, err = client.SendChannelMesssage(ctxWithToken(context.Background(), "bearer", "bad_token"), &rpc.ChannelMessage{
 		Channel: conf.Channel,
 		Message: "RPC",
 	})

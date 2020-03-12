@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
-	"github.com/greboid/irc/protos"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc"
@@ -33,7 +32,7 @@ func (s *GrpcServer) StartGRPC() {
 		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
-	protos.RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn})
+	RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn})
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Printf("Error listening: %s", err.Error())
@@ -55,14 +54,14 @@ type pluginServer struct {
 	conn *irc.Connection
 }
 
-func (ps *pluginServer) SendChannelMesssage(_ context.Context, req *protos.ChannelMessage) (*protos.Error, error) {
+func (ps *pluginServer) SendChannelMesssage(_ context.Context, req *ChannelMessage) (*Error, error) {
 	ps.conn.SendRawf("PRIVMSG %s :%s", req.Channel, req.Message)
-	return &protos.Error{
+	return &Error{
 		Message: "",
 	}, nil
 }
-func (*pluginServer) SendRawMessage(_ context.Context, _ *protos.RawMessage) (*protos.Error, error) {
-	return &protos.Error{
+func (*pluginServer) SendRawMessage(_ context.Context, _ *RawMessage) (*Error, error) {
+	return &Error{
 		Message: "",
 	}, nil
 }

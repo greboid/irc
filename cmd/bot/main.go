@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-//go:generate protoc -I ../../protos plugin.proto --go_out=plugins=grpc:../../protos
+//go:generate protoc -I ../../rpc plugin.proto --go_out=plugins=grpc:../../rpc
 
 func main() {
 	conf := config.GetConfig()
