@@ -21,7 +21,7 @@ type User struct {
 	Token string
 }
 
-func New(path string) *DB {
+func New(path string) (*DB, error) {
 	log.Print("Initialising database")
 	db := &DB{
 		path: path,
@@ -30,14 +30,14 @@ func New(path string) *DB {
 	db.InitDB()
 	var config buntdb.Config
 	if err := db.Db.ReadConfig(&config); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	config.SyncPolicy = buntdb.Always
 	if err := db.Db.SetConfig(config); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	log.Print("Initialised database")
-	return db
+	return db, nil
 }
 
 func (db *DB) setKey(key string, value string) error {

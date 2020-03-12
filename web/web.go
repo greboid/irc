@@ -9,20 +9,20 @@ import (
 )
 
 type Web struct {
-	irc     *irc.Connection
-	db      *database.DB
-	webPort int
-	channel string
+	irc      *irc.Connection
+	db       *database.DB
+	webPort  int
+	channel  string
 	adminKey string
 }
 
 func NewWeb(webPort int, channel string, adminKey string, irc *irc.Connection, db *database.DB) *Web {
 	log.Print("Initialising web")
 	return &Web{
-		irc:     irc,
-		db:      db,
-		webPort: webPort,
-		channel: channel,
+		irc:      irc,
+		db:       db,
+		webPort:  webPort,
+		channel:  channel,
 		adminKey: adminKey,
 	}
 }

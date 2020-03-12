@@ -11,8 +11,14 @@ import (
 //go:generate protoc -I ../../rpc plugin.proto --go_out=plugins=grpc:../../rpc
 
 func main() {
-	conf := GetConfig()
-	db := database.New(conf.DBPath)
+	conf, err := GetConfig()
+	if err != nil {
+		log.Panicf("Unable to load config: %s", err.Error())
+	}
+	db, err := database.New(conf.DBPath)
+	if err != nil {
+		log.Panicf("Unable to load config: %s", err.Error())
+	}
 	connection := irc.NewIRC(conf.Server, conf.Password, conf.Nickname, conf.TLS, conf.Debug)
 	rpcServer := rpc.GrpcServer{Conn: connection, DB: db}
 	go web.NewWeb(conf.WebPort, conf.Channel, conf.AdminKey, connection, db).StartWeb()
@@ -21,7 +27,7 @@ func main() {
 		c.SendRawf("JOIN :%s", conf.Channel)
 	})
 	go rpcServer.StartGRPC()
-	err := connection.ConnectAndWait()
+	err = connection.ConnectAndWait()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
+	"github.com/greboid/irc/database"
 	"github.com/spf13/viper"
 	"log"
 	"path/filepath"
+	"strings"
 )
 
 type Config struct {
@@ -19,6 +22,7 @@ type Config struct {
 	SASLAuth bool
 	SASLUser string
 	SASLPass string
+	Plugins  []database.Plugin
 }
 
 func setDefault(conf *viper.Viper) {
@@ -34,6 +38,7 @@ func setDefault(conf *viper.Viper) {
 	conf.SetDefault("SASL_AUTH", false)
 	conf.SetDefault("SASL_USER", false)
 	conf.SetDefault("SASL_PASS", false)
+	conf.SetDefault("PLUGINS", "")
 }
 
 func getConfig(conf *viper.Viper) {
@@ -51,12 +56,23 @@ func getConfig(conf *viper.Viper) {
 	}
 }
 
-func GetConfig() *Config {
+func GetConfig() (*Config, error) {
 	log.Print("Loading config")
 	conf := viper.New()
 	conf.AutomaticEnv()
 	setDefault(conf)
 	getConfig(conf)
+	var plugins []database.Plugin
+	for _, value := range strings.Split(conf.GetString("PLUGINS"), ",") {
+		if len(value) == 0 {
+			break
+		}
+		pluginString := strings.Split(value, "=")
+		if len(pluginString) != 2 {
+			return nil, errors.New("invalid plugin definition")
+		}
+		plugins = append(plugins, database.Plugin{Name: pluginString[0], Token: pluginString[1]})
+	}
 	return &Config{
 		WebPort:  conf.GetInt("WEB_PORT"),
 		Channel:  conf.GetString("CHANNEL"),
@@ -70,5 +86,6 @@ func GetConfig() *Config {
 		SASLAuth: conf.GetBool("SASL_AUTH"),
 		SASLUser: conf.GetString("SASL_USER"),
 		SASLPass: conf.GetString("SASL_PASS"),
-	}
+		Plugins:  plugins,
+	}, nil
 }
