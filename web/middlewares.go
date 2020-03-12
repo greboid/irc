@@ -20,7 +20,7 @@ func adminKeyMiddleware(conf *config.Config) echo.MiddlewareFunc {
 func userKeyMiddleware(db *database.DB) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if db.CheckKey(c.Param("key")) {
+			if db.CheckUser(c.Param("key")) {
 				return next(c)
 			}
 			return echo.ErrUnauthorized

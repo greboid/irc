@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"github.com/tidwall/buntdb"
 	"log"
 )
@@ -8,6 +9,16 @@ import (
 type DB struct {
 	path string
 	Db   *buntdb.DB
+}
+
+type Plugin struct {
+	Name  string
+	Token string
+}
+
+type User struct {
+	Name  string
+	Token string
 }
 
 func New(path string) *DB {
@@ -29,29 +40,98 @@ func New(path string) *DB {
 	return db
 }
 
-func (db *DB) CheckKey(key string) bool {
-	var valid bool
-	err := db.Db.View(func(tx *buntdb.Tx) error {
-		_, err := tx.Get(key)
-		if err != nil {
-			return err
-		}
-		valid = true
-		return nil
-	})
-	if err != nil {
-		return false
-	}
-	return valid
-}
-
-func (db *DB) CreateKey(key string) error {
-	log.Printf("Creating key: %s", key)
+func (db *DB) setKey(key string, value string) error {
 	err := db.Db.Update(func(tx *buntdb.Tx) error {
-		_, _, err := tx.Set(key, key, nil)
+		_, _, err := tx.Set(key, value, nil)
 		return err
 	})
 	return err
+}
+
+func (db *DB) getKey(key string) (string, error) {
+	var value string
+	var err error
+	err = db.Db.View(func(tx *buntdb.Tx) error {
+		dbValue, err := tx.Get(key)
+		if err != nil {
+			return err
+		}
+		value = dbValue
+		return nil
+	})
+	return value, err
+}
+
+func (db *DB) getUsers() []User {
+	dataString, err := db.getKey("users")
+	if err != nil {
+		return nil
+	}
+	var data []User
+	err = json.Unmarshal([]byte(dataString), &data)
+	if err != nil {
+		return nil
+	}
+	return data
+}
+
+func (db *DB) getPlugins() []Plugin {
+	dataString, err := db.getKey("plugins")
+	if err != nil {
+		return nil
+	}
+	var data []Plugin
+	err = json.Unmarshal([]byte(dataString), &data)
+	if err != nil {
+		return nil
+	}
+	return data
+}
+
+func (db *DB) CheckUser(key string) bool {
+	users := db.getUsers()
+	for _, user := range users {
+		if user.Token == key {
+			return true
+		}
+	}
+	return false
+}
+
+func (db *DB) CheckPlugin(key string) bool {
+	plugins := db.getPlugins()
+	for _, plugin := range plugins {
+		if plugin.Token == key {
+			return true
+		}
+	}
+	return false
+}
+
+func (db *DB) createUser(name string, token string) error {
+	user := User{
+		Name:  name,
+		Token: token,
+	}
+	users := append(db.getUsers(), user)
+	value, err := json.Marshal(&users)
+	if err != nil {
+		return err
+	}
+	return db.setKey("users", string(value))
+}
+
+func (db *DB) createPlugin(name string, token string) error {
+	plugin := Plugin{
+		Name:  name,
+		Token: token,
+	}
+	plugins := append(db.getPlugins(), plugin)
+	value, err := json.Marshal(plugins)
+	if err != nil {
+		return err
+	}
+	return db.setKey("plugins", string(value))
 }
 
 func (db *DB) InitDB() {
