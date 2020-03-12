@@ -3,13 +3,14 @@ package irc
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/greboid/irc/config"
 	"log"
 	"strings"
 )
 
 type saslHandler struct {
-	conf        *config.Config
+	SASLAuth    bool
+	SASLUser    string
+	SASLPass    string
 	authed      bool
 	readyToAuth bool
 	authing     bool
@@ -37,7 +38,7 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap string) {
 	if !h.authed {
 		c.saslStarted = true
 	}
-	if !checkSASLSupported(c) {
+	if !h.checkSASLSupported(c) {
 		log.Printf("SASL Finished")
 		c.saslFinished <- true
 		return
@@ -46,11 +47,11 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap string) {
 	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func checkSASLSupported(c *Connection) bool {
-	if c.conf.SASLAuth && c.conf.SASLUser != "" && c.conf.SASLPass != "" {
+func (h *saslHandler) checkSASLSupported(c *Connection) bool {
+	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
 		var saslmethods []string
-		for key, _ := range c.capabilityHandler.available {
+		for key := range c.capabilityHandler.available {
 			if key.name == "sasl" {
 				saslmethods = strings.Split(key.values, ",")
 			}
@@ -105,7 +106,7 @@ func (h *saslHandler) handleAuthenticate(c *Connection, m *Message) {
 }
 
 func (h *saslHandler) doAuth(c *Connection) {
-	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s\x00%s\x00%s", c.conf.SASLUser, c.conf.SASLUser, c.conf.SASLPass)))
+	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s\x00%s\x00%s", h.SASLUser, h.SASLUser, h.SASLPass)))
 	for i := 0; i < len(encoded); i += 400 {
 		c.SendRawf("AUTHENTICATE %s", encoded[i:])
 		if len(encoded[i:]) == 400 {

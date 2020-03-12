@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"github.com/greboid/irc/config"
 	"github.com/vardius/message-bus"
 	"net"
 	"os"
@@ -30,7 +29,14 @@ type ConnectionConfig struct {
 }
 
 type Connection struct {
-	conf              *config.Config
+	Server            string
+	Password          string
+	Nickname          string
+	UseTLS            bool
+	Debug             bool
+	SASLAuth          bool
+	SASLUser          string
+	SASLPass          string
 	ConnConfig        ConnectionConfig
 	ClientConfig      ClientConfig
 	socket            net.Conn

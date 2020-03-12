@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
-	"github.com/greboid/irc/config"
 	messagebus "github.com/vardius/message-bus"
 	"log"
 	"net"
@@ -15,19 +14,19 @@ import (
 	"time"
 )
 
-func NewIRC(config *config.Config) *Connection {
+func NewIRC(server string, password string, nickname string, useTLS bool, debug bool) *Connection {
 	log.Print("Creating new IRC")
 	return &Connection{
 		ClientConfig: ClientConfig{
-			Server:   config.Server,
-			Password: config.Password,
-			Nick:     config.Nickname,
-			User:     config.Nickname,
-			Realname: config.Nickname,
-			UseTLS:   config.TLS,
+			Server:   server,
+			Password: password,
+			Nick:     nickname,
+			User:     nickname,
+			Realname: nickname,
+			UseTLS:   useTLS,
 		},
 		ConnConfig: DefaultConnectionConfig,
-		conf:       config,
+		Debug:      debug,
 	}
 }
 
@@ -102,7 +101,7 @@ func (irc *Connection) Init() {
 	irc.Bus = messagebus.New(10)
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
-	irc.debugHandler = debugHandler{conf: irc.conf}
+	irc.debugHandler = debugHandler{irc.Debug}
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)

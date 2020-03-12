@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"github.com/greboid/irc/config"
 	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
 	"github.com/labstack/echo"
@@ -10,28 +9,32 @@ import (
 )
 
 type Web struct {
-	conf *config.Config
-	irc  *irc.Connection
-	db   *database.DB
+	irc     *irc.Connection
+	db      *database.DB
+	webPort int
+	channel string
+	adminKey string
 }
 
-func NewWeb(conf *config.Config, irc *irc.Connection, db *database.DB) *Web {
+func NewWeb(webPort int, channel string, adminKey string, irc *irc.Connection, db *database.DB) *Web {
 	log.Print("Initialising web")
 	return &Web{
-		conf: conf,
-		irc:  irc,
-		db:   db,
+		irc:     irc,
+		db:      db,
+		webPort: webPort,
+		channel: channel,
+		adminKey: adminKey,
 	}
 }
 
 func (web *Web) StartWeb() {
-	log.Printf("Starting web: %d", web.conf.WebPort)
+	log.Printf("Starting web: %d", web.webPort)
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 	addAdminRoutes(e, web)
 	addBasicRoutes(e, web)
-	err := e.Start(fmt.Sprintf("0.0.0.0:%d", web.conf.WebPort))
+	err := e.Start(fmt.Sprintf("0.0.0.0:%d", web.webPort))
 	if err != nil {
 		log.Panicf("Unable to start web server: %v", err)
 	}

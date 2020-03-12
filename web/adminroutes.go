@@ -8,7 +8,7 @@ import (
 )
 
 func addAdminRoutes(e *echo.Echo, web *Web) {
-	admin := e.Group("admin/:key", adminKeyMiddleware(web.conf))
+	admin := e.Group("admin/:key", adminKeyMiddleware(web.adminKey))
 	admin.GET("/keys", web.getKeys)
 }
 

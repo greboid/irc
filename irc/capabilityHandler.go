@@ -31,7 +31,11 @@ func (h *capabilityHandler) install(c *Connection) {
 	h.requested = false
 	h.finished = false
 	h.mutex = &sync.Mutex{}
-	h.saslHandler = &saslHandler{conf: c.conf}
+	h.saslHandler = &saslHandler{
+		SASLAuth: c.SASLAuth,
+		SASLUser: c.SASLUser,
+		SASLPass: c.SASLPass,
+	}
 
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)

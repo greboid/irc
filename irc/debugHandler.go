@@ -1,12 +1,11 @@
 package irc
 
 import (
-	"github.com/greboid/irc/config"
 	"log"
 )
 
 type debugHandler struct {
-	conf *config.Config
+	debug bool
 }
 
 func (h *debugHandler) install(c *Connection) {
@@ -15,13 +14,13 @@ func (h *debugHandler) install(c *Connection) {
 }
 
 func (h *debugHandler) handleMessage(_ *Connection, m *Message) {
-	if h.conf.Debug {
+	if h.debug {
 		log.Printf("In : %s %s %s", m.Source, m.Verb, m.Params)
 	}
 }
 
 func (h *debugHandler) handleOutboundMessage(_ *Connection, m *string) {
-	if h.conf.Debug {
+	if h.debug {
 		log.Printf("Out: %s", *m)
 	}
 }
