@@ -8,15 +8,14 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"log"
 	"math/big"
 	"time"
 )
 
-func generateSelfSignedCert() tls.Certificate {
+func generateSelfSignedCert() (*tls.Certificate, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
@@ -37,20 +36,19 @@ func generateSelfSignedCert() tls.Certificate {
 		Bytes: certBytes,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-
 	certPrivKeyPEM := new(bytes.Buffer)
 	err = pem.Encode(certPrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(priv),
 	})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	serverCert, err := tls.X509KeyPair(certPEM.Bytes(), certPrivKeyPEM.Bytes())
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return serverCert
+	return &serverCert, err
 }

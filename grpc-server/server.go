@@ -16,7 +16,11 @@ import (
 )
 
 func StartGRPC(conn *irc.Connection) {
-	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", 8081), &tls.Config{Certificates: []tls.Certificate{generateSelfSignedCert()}})
+	certificate, err := generateSelfSignedCert()
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", 8081), &tls.Config{Certificates: []tls.Certificate{*certificate}})
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
