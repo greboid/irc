@@ -7,14 +7,16 @@ import (
 )
 
 type Config struct {
-	Channel string
-	RPCHost string
-	RPCPort int
+	Channel  string
+	RPCHost  string
+	RPCPort  int
+	RPCToken string
 }
 
 func setDefault(conf *viper.Viper) {
 	conf.SetDefault("RPC_HOST", "localhost")
 	conf.SetDefault("RPC_PORT", 8001)
+	conf.SetDefault("RPC_TOKEN", "")
 	conf.SetDefault("CHANNEL", "")
 }
 
@@ -40,8 +42,9 @@ func GetConfig() (*Config, error) {
 	setDefault(conf)
 	getConfig(conf)
 	return &Config{
-		Channel: conf.GetString("CHANNEL"),
-		RPCHost: conf.GetString("RPC_HOST"),
-		RPCPort: conf.GetInt("RPC_PORT"),
+		Channel:  conf.GetString("CHANNEL"),
+		RPCHost:  conf.GetString("RPC_HOST"),
+		RPCPort:  conf.GetInt("RPC_PORT"),
+		RPCToken: conf.GetString("RPC_TOKEN"),
 	}, nil
 }
