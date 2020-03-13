@@ -22,6 +22,7 @@ type Config struct {
 	SASLAuth bool
 	SASLUser string
 	SASLPass string
+	RPCPort  int
 	Plugins  []database.Plugin
 }
 
@@ -38,6 +39,7 @@ func setDefault(conf *viper.Viper) {
 	conf.SetDefault("SASL_AUTH", false)
 	conf.SetDefault("SASL_USER", false)
 	conf.SetDefault("SASL_PASS", false)
+	conf.SetDefault("RPC_PORT", 8001)
 	conf.SetDefault("PLUGINS", "")
 }
 
@@ -86,6 +88,7 @@ func GetConfig() (*Config, error) {
 		SASLAuth: conf.GetBool("SASL_AUTH"),
 		SASLUser: conf.GetString("SASL_USER"),
 		SASLPass: conf.GetString("SASL_PASS"),
+		RPCPort:  conf.GetInt("RPC_PORT"),
 		Plugins:  plugins,
 	}, nil
 }

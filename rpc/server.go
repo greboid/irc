@@ -17,14 +17,17 @@ import (
 type GrpcServer struct {
 	Conn *irc.Connection
 	DB   *database.DB
+	RPCPort int
 }
 
 func (s *GrpcServer) StartGRPC() {
+	log.Print("Generating certificate")
 	certificate, err := generateSelfSignedCert()
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("failed to generate certifcate: %s", err.Error())
 	}
-	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", 8081), &tls.Config{Certificates: []tls.Certificate{*certificate}})
+	log.Printf("Starting RPC: %d", s.RPCPort)
+	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", s.RPCPort), &tls.Config{Certificates: []tls.Certificate{*certificate}})
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
