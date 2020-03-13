@@ -25,7 +25,7 @@ func main() {
 	defer conn.Close()
 	client := rpc.NewIRCPluginClient(conn)
 	context.Background()
-	_, err = client.SendChannelMesssage(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.ChannelMessage{
+	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.ChannelMessage{
 		Channel: conf.Channel,
 		Message: "RPC",
 	})
