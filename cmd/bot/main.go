@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		log.Panicf("Unable to load config: %s", err.Error())
 	}
-	connection := irc.NewIRC(conf.Server, conf.Password, conf.Nickname, conf.TLS, conf.Debug)
+	connection := irc.NewIRC(conf.Server, conf.Password, conf.Nickname, conf.TLS, conf.SASLAuth, conf.SASLUser, conf.SASLPass, conf.Debug)
 	rpcServer := rpc.GrpcServer{Conn: connection, DB: db, RPCPort: conf.RPCPort, Plugins: conf.Plugins}
 	go web.NewWeb(conf.WebPort, conf.Channel, conf.AdminKey, connection, db).StartWeb()
 	log.Print("Adding callbacks")
