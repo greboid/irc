@@ -33,7 +33,7 @@ func setDefault(conf *viper.Viper) {
 	conf.SetDefault("NICK", "")
 	conf.SetDefault("WEB_PORT", 8000)
 	conf.SetDefault("CHANNEL", "")
-	conf.SetDefault("DB_PATH", "./data/db")
+	conf.SetDefault("DB_PATH", "/data/db")
 	conf.SetDefault("ADMIN_KEY", "ctwJTQ7HBdym3cns")
 	conf.SetDefault("DEBUG", false)
 	conf.SetDefault("SASL_AUTH", false)
