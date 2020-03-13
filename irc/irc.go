@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func NewIRC(server string, password string, nickname string, useTLS bool, debug bool) *Connection {
+func NewIRC(server string, password string, nickname string, useTLS bool, useSasl bool, saslUser, saslPass string, debug bool) *Connection {
 	log.Print("Creating new IRC")
 	return &Connection{
 		ClientConfig: ClientConfig{
@@ -26,6 +26,9 @@ func NewIRC(server string, password string, nickname string, useTLS bool, debug 
 			UseTLS:   useTLS,
 		},
 		ConnConfig: DefaultConnectionConfig,
+		SASLAuth:   useSasl,
+		SASLUser:   saslUser,
+		SASLPass:   saslPass,
 		Debug:      debug,
 	}
 }
