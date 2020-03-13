@@ -15,8 +15,8 @@ import (
 )
 
 type GrpcServer struct {
-	Conn *irc.Connection
-	DB   *database.DB
+	Conn    *irc.Connection
+	DB      *database.DB
 	RPCPort int
 }
 
