@@ -18,9 +18,13 @@ type GrpcServer struct {
 	Conn    *irc.Connection
 	DB      *database.DB
 	RPCPort int
+	Plugins []database.Plugin
 }
 
 func (s *GrpcServer) StartGRPC() {
+	for _, plugin := range s.Plugins {
+		_ = s.DB.CreatePlugin(plugin.Name, plugin.Token)
+	}
 	log.Print("Generating certificate")
 	certificate, err := generateSelfSignedCert()
 	if err != nil {

@@ -126,7 +126,13 @@ func (db *DB) CreatePlugin(name string, token string) error {
 		Name:  name,
 		Token: token,
 	}
-	plugins := append(db.getPlugins(), plugin)
+	plugins := db.getPlugins()
+	for _, plugin := range plugins {
+		if plugin.Token == token {
+			return nil
+		}
+	}
+	plugins = append(plugins, plugin)
 	value, err := json.Marshal(plugins)
 	if err != nil {
 		return err

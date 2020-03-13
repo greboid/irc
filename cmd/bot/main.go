@@ -20,7 +20,7 @@ func main() {
 		log.Panicf("Unable to load config: %s", err.Error())
 	}
 	connection := irc.NewIRC(conf.Server, conf.Password, conf.Nickname, conf.TLS, conf.Debug)
-	rpcServer := rpc.GrpcServer{Conn: connection, DB: db, RPCPort: conf.RPCPort}
+	rpcServer := rpc.GrpcServer{Conn: connection, DB: db, RPCPort: conf.RPCPort, Plugins: conf.Plugins}
 	go web.NewWeb(conf.WebPort, conf.Channel, conf.AdminKey, connection, db).StartWeb()
 	log.Print("Adding callbacks")
 	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
