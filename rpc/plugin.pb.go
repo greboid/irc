@@ -149,10 +149,50 @@ func (m *Error) GetMessage() string {
 	return ""
 }
 
+type Channel struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Channel) Reset()         { *m = Channel{} }
+func (m *Channel) String() string { return proto.CompactTextString(m) }
+func (*Channel) ProtoMessage()    {}
+func (*Channel) Descriptor() ([]byte, []int) {
+	return fileDescriptor_22a625af4bc1cc87, []int{3}
+}
+
+func (m *Channel) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Channel.Unmarshal(m, b)
+}
+func (m *Channel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Channel.Marshal(b, m, deterministic)
+}
+func (m *Channel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Channel.Merge(m, src)
+}
+func (m *Channel) XXX_Size() int {
+	return xxx_messageInfo_Channel.Size(m)
+}
+func (m *Channel) XXX_DiscardUnknown() {
+	xxx_messageInfo_Channel.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Channel proto.InternalMessageInfo
+
+func (m *Channel) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*ChannelMessage)(nil), "rpc.ChannelMessage")
 	proto.RegisterType((*RawMessage)(nil), "rpc.RawMessage")
 	proto.RegisterType((*Error)(nil), "rpc.Error")
+	proto.RegisterType((*Channel)(nil), "rpc.Channel")
 }
 
 func init() {
@@ -160,18 +200,21 @@ func init() {
 }
 
 var fileDescriptor_22a625af4bc1cc87 = []byte{
-	// 174 bytes of a gzipped FileDescriptorProto
+	// 212 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0xc8, 0x29, 0x4d,
 	0xcf, 0xcc, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x2a, 0x48, 0x56, 0x72, 0xe1,
 	0xe2, 0x73, 0xce, 0x48, 0xcc, 0xcb, 0x4b, 0xcd, 0xf1, 0x4d, 0x2d, 0x2e, 0x4e, 0x4c, 0x4f, 0x15,
 	0x92, 0xe0, 0x62, 0x4f, 0x86, 0x88, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0xc1, 0xb8, 0x20,
 	0x99, 0x5c, 0x88, 0x22, 0x09, 0x26, 0x88, 0x0c, 0x94, 0xab, 0xa4, 0xc6, 0xc5, 0x15, 0x94, 0x58,
 	0x8e, 0x64, 0x02, 0x4c, 0x1d, 0x23, 0xaa, 0x3a, 0x45, 0x2e, 0x56, 0xd7, 0xa2, 0xa2, 0xfc, 0x22,
-	0xdc, 0x4a, 0x8c, 0x4a, 0xb9, 0x38, 0x3d, 0x83, 0x9c, 0x03, 0xc0, 0x0e, 0x15, 0x32, 0xe7, 0x12,
-	0x2a, 0x4e, 0xcd, 0x4b, 0x41, 0x73, 0xa1, 0xb0, 0x5e, 0x51, 0x41, 0xb2, 0x1e, 0xaa, 0xa0, 0x14,
-	0x17, 0x58, 0x10, 0x6c, 0xba, 0x12, 0x83, 0x90, 0x3e, 0x17, 0x1f, 0x48, 0x23, 0x92, 0xa3, 0xf8,
-	0xc1, 0xf2, 0x08, 0x01, 0x54, 0x0d, 0x4e, 0xac, 0x51, 0xa0, 0xe0, 0x48, 0x62, 0x03, 0x07, 0x8d,
-	0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xc8, 0x00, 0xf3, 0xf2, 0x2a, 0x01, 0x00, 0x00,
+	0x3c, 0x4a, 0x64, 0xb9, 0xd8, 0xa1, 0x0e, 0x12, 0x12, 0xe2, 0x62, 0xc9, 0x4b, 0xcc, 0x85, 0xa9,
+	0x00, 0xb3, 0x8d, 0x56, 0x33, 0x72, 0x71, 0x7a, 0x06, 0x39, 0x07, 0x80, 0x3d, 0x22, 0x64, 0xce,
+	0x25, 0x54, 0x9c, 0x9a, 0x97, 0x82, 0xe6, 0x03, 0x61, 0xbd, 0xa2, 0x82, 0x64, 0x3d, 0x54, 0x41,
+	0x29, 0x2e, 0xb0, 0x20, 0xd8, 0x76, 0x25, 0x06, 0x21, 0x7d, 0x2e, 0x3e, 0x90, 0x46, 0x24, 0x47,
+	0xf3, 0x83, 0xe5, 0x11, 0x02, 0x68, 0x1a, 0x4c, 0xb8, 0xb8, 0xd3, 0x53, 0x4b, 0xa0, 0x72, 0xc5,
+	0x42, 0x3c, 0xc8, 0x56, 0x48, 0x61, 0xb3, 0x50, 0x89, 0xc1, 0x80, 0xd1, 0x89, 0x35, 0x0a, 0x14,
+	0xc8, 0x49, 0x6c, 0xe0, 0x00, 0x37, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x85, 0xe9, 0xe3, 0xed,
+	0x80, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -188,6 +231,7 @@ const _ = grpc.SupportPackageIsVersion6
 type IRCPluginClient interface {
 	SendChannelMessage(ctx context.Context, in *ChannelMessage, opts ...grpc.CallOption) (*Error, error)
 	SendRawMessage(ctx context.Context, in *RawMessage, opts ...grpc.CallOption) (*Error, error)
+	GetMessages(ctx context.Context, in *Channel, opts ...grpc.CallOption) (IRCPlugin_GetMessagesClient, error)
 }
 
 type iRCPluginClient struct {
@@ -216,10 +260,43 @@ func (c *iRCPluginClient) SendRawMessage(ctx context.Context, in *RawMessage, op
 	return out, nil
 }
 
+func (c *iRCPluginClient) GetMessages(ctx context.Context, in *Channel, opts ...grpc.CallOption) (IRCPlugin_GetMessagesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_IRCPlugin_serviceDesc.Streams[0], "/rpc.IRCPlugin/getMessages", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &iRCPluginGetMessagesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type IRCPlugin_GetMessagesClient interface {
+	Recv() (*ChannelMessage, error)
+	grpc.ClientStream
+}
+
+type iRCPluginGetMessagesClient struct {
+	grpc.ClientStream
+}
+
+func (x *iRCPluginGetMessagesClient) Recv() (*ChannelMessage, error) {
+	m := new(ChannelMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // IRCPluginServer is the server API for IRCPlugin service.
 type IRCPluginServer interface {
 	SendChannelMessage(context.Context, *ChannelMessage) (*Error, error)
 	SendRawMessage(context.Context, *RawMessage) (*Error, error)
+	GetMessages(*Channel, IRCPlugin_GetMessagesServer) error
 }
 
 // UnimplementedIRCPluginServer can be embedded to have forward compatible implementations.
@@ -231,6 +308,9 @@ func (*UnimplementedIRCPluginServer) SendChannelMessage(ctx context.Context, req
 }
 func (*UnimplementedIRCPluginServer) SendRawMessage(ctx context.Context, req *RawMessage) (*Error, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendRawMessage not implemented")
+}
+func (*UnimplementedIRCPluginServer) GetMessages(req *Channel, srv IRCPlugin_GetMessagesServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
 }
 
 func RegisterIRCPluginServer(s *grpc.Server, srv IRCPluginServer) {
@@ -273,6 +353,27 @@ func _IRCPlugin_SendRawMessage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IRCPlugin_GetMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Channel)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(IRCPluginServer).GetMessages(m, &iRCPluginGetMessagesServer{stream})
+}
+
+type IRCPlugin_GetMessagesServer interface {
+	Send(*ChannelMessage) error
+	grpc.ServerStream
+}
+
+type iRCPluginGetMessagesServer struct {
+	grpc.ServerStream
+}
+
+func (x *iRCPluginGetMessagesServer) Send(m *ChannelMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _IRCPlugin_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.IRCPlugin",
 	HandlerType: (*IRCPluginServer)(nil),
@@ -286,6 +387,12 @@ var _IRCPlugin_serviceDesc = grpc.ServiceDesc{
 			Handler:    _IRCPlugin_SendRawMessage_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "getMessages",
+			Handler:       _IRCPlugin_GetMessages_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "plugin.proto",
 }

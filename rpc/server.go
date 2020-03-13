@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
+	"strings"
 )
 
 type GrpcServer struct {
@@ -71,4 +72,36 @@ func (*pluginServer) SendRawMessage(_ context.Context, _ *RawMessage) (*Error, e
 	return &Error{
 		Message: "",
 	}, nil
+}
+
+func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessagesServer) error {
+	exitLoop := make(chan bool, 1)
+	chanMessage := make(chan *irc.Message, 1)
+	channelName := channel.Name
+	partHandler := func(channelPart Channel) {
+		if channelPart.Name == channelName {
+			exitLoop <- true
+		}
+	}
+	messageHandler := func(message *irc.Message) {
+		if strings.ToLower(strings.Split(message.Params, " ")[0]) == strings.ToLower(channelName) {
+			chanMessage <- message
+		}
+	}
+	if err := ps.conn.Bus.Subscribe("ChannelPart", partHandler); err != nil {
+		return err
+	}
+	if err := ps.conn.Bus.Subscribe("ChannelMessage", messageHandler); err != nil {
+		return err
+	}
+	for {
+		select {
+		case <-exitLoop:
+			return nil
+		case msg := <-chanMessage:
+			if err := stream.Send(&ChannelMessage{Channel: "", Message: msg.Params}); err != nil {
+				return err
+			}
+		}
+	}
 }

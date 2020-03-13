@@ -71,3 +71,7 @@ type InboundHandler struct {
 	Verb    string
 	Handler func(*Connection, *Message)
 }
+
+type Channel struct {
+	Name string
+}

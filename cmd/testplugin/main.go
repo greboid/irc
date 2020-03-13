@@ -7,6 +7,7 @@ import (
 	"github.com/greboid/irc/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"io"
 	"log"
 	"time"
 )
@@ -34,4 +35,19 @@ func main() {
 	} else {
 		log.Print("Sent message, exiting.")
 	}
+	handler, err := client.GetMessages(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.Channel{Name: conf.Channel})
+	if err != nil {
+		log.Fatalf("Error getting messages: %s", err.Error())
+	}
+	for {
+		msg, err := handler.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Err receiving message: %v", err)
+		}
+		log.Printf("Message: %s", msg.Message)
+	}
+
 }

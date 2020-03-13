@@ -26,6 +26,9 @@ func main() {
 	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN :%s", conf.Channel)
 	})
+	connection.AddInboundHandler("PRIVMSG", func(c *irc.Connection, m *irc.Message) {
+		c.Bus.Publish("ChannelMessage", m)
+	})
 	go rpcServer.StartGRPC()
 	err = connection.ConnectAndWait()
 	if err != nil {

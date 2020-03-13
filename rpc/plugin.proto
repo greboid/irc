@@ -15,9 +15,14 @@ message Error {
     string message = 1;
 }
 
+message Channel {
+    string name = 1;
+}
+
 service IRCPlugin {
     rpc sendChannelMessage(ChannelMessage) returns (Error) {};
     rpc sendRawMessage(RawMessage) returns (Error) {};
+    rpc getMessages(Channel) returns (stream ChannelMessage) {}
 }
 
 
