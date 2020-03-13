@@ -61,7 +61,7 @@ type pluginServer struct {
 	conn *irc.Connection
 }
 
-func (ps *pluginServer) SendChannelMesssage(_ context.Context, req *ChannelMessage) (*Error, error) {
+func (ps *pluginServer) SendChannelMessage(_ context.Context, req *ChannelMessage) (*Error, error) {
 	ps.conn.SendRawf("PRIVMSG %s :%s", req.Channel, req.Message)
 	return &Error{
 		Message: "",

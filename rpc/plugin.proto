@@ -16,7 +16,7 @@ message Error {
 }
 
 service IRCPlugin {
-    rpc sendChannelMesssage(ChannelMessage) returns (Error) {};
+    rpc sendChannelMessage(ChannelMessage) returns (Error) {};
     rpc sendRawMessage(RawMessage) returns (Error) {};
 }
 
