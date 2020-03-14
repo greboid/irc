@@ -99,7 +99,7 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 		case <-exitLoop:
 			return nil
 		case msg := <-chanMessage:
-			if err := stream.Send(&ChannelMessage{Channel: channelName, Message: strings.Join(msg.ParamsArray[1:], " "), Source: msg.Source}); err != nil {
+			if err := stream.Send(&ChannelMessage{Channel: strings.ToLower(msg.ParamsArray[1]), Message: strings.Join(msg.ParamsArray[1:], " "), Source: msg.Source}); err != nil {
 				return err
 			}
 		}
