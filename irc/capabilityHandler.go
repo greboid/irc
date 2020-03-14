@@ -39,7 +39,16 @@ func (h *capabilityHandler) install(c *Connection) {
 
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
+	c.AddOutboundHandler(passHandler(h))
 	h.saslHandler.install(c)
+}
+
+func passHandler(h *capabilityHandler) func(c *Connection, m string) {
+	return func(c *Connection, m string) {
+		if strings.HasPrefix(m, "PASS") {
+			h.Negotiate(c)
+		}
+	}
 }
 
 func (h *capabilityHandler) handleRegistered(*Connection, *Message) {

@@ -136,7 +136,6 @@ func (irc *Connection) Connect() error {
 	irc.capabilityHandler.install(irc)
 	irc.nickHandler.install(irc)
 	irc.debugHandler.install(irc)
-	irc.capabilityHandler.Negotiate(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
