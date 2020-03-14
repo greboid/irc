@@ -59,7 +59,7 @@ func (irc *Connection) writeLoop() {
 			if !ok || b == "" || irc.socket == nil {
 				break
 			}
-			irc.runOutboundHandlers(&b)
+			irc.runOutboundHandlers(b)
 			_, err := irc.socket.Write([]byte(b))
 			if err != nil {
 				irc.errorChannel <- err

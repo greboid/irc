@@ -11,13 +11,13 @@ var (
 	}
 )
 
-func (irc *Connection) addOutboundHandlers(handlers []func(c *Connection, m *string)) {
+func (irc *Connection) addOutboundHandlers(handlers []func(c *Connection, m string)) {
 	for _, handler := range handlers {
 		irc.AddOutboundHandler(handler)
 	}
 }
 
-func (irc *Connection) AddOutboundHandler(f func(c *Connection, m *string)) {
+func (irc *Connection) AddOutboundHandler(f func(c *Connection, m string)) {
 	if !irc.initialised {
 		irc.Init()
 	}
@@ -46,7 +46,7 @@ func (irc *Connection) runInboundHandlers(m *Message) {
 	}
 }
 
-func (irc *Connection) runOutboundHandlers(m *string) {
+func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
 		go handler(irc, m)
 	}
