@@ -1,6 +1,8 @@
 package irc
 
-import "strings"
+import (
+	"strings"
+)
 
 func (irc *Connection) parseMesage(line string) *Message {
 	line = strings.TrimRight(line, "\r\n")
