@@ -19,7 +19,11 @@ message Channel {
     string name = 1;
 }
 
+message Empty {
+}
+
 service IRCPlugin {
+    rpc ping(Empty) returns (Empty) {};
     rpc sendChannelMessage(ChannelMessage) returns (Error) {};
     rpc sendRawMessage(RawMessage) returns (Error) {};
     rpc getMessages(Channel) returns (stream ChannelMessage) {}

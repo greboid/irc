@@ -25,7 +25,10 @@ func main() {
 	}
 	defer conn.Close()
 	client := rpc.NewIRCPluginClient(conn)
-	context.Background()
+	_, err = client.Ping(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.Empty{})
+	if err != nil {
+		log.Fatalf("Error getting messages: %s", err.Error())
+	}
 	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.ChannelMessage{
 		Channel: conf.Channel,
 		Message: "RPC",

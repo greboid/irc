@@ -105,3 +105,7 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 		}
 	}
 }
+
+func (ps *pluginServer) Ping(context.Context, *Empty) (*Empty, error) {
+	return &Empty{}, nil
+}
