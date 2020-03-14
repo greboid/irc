@@ -14,7 +14,6 @@ type capabilityHandler struct {
 	requested   bool
 	finished    bool
 	mutex       *sync.Mutex
-	saslHandler *saslHandler
 }
 
 type capabilityStruct struct {
@@ -31,16 +30,10 @@ func (h *capabilityHandler) install(c *Connection) {
 	h.requested = false
 	h.finished = false
 	h.mutex = &sync.Mutex{}
-	h.saslHandler = &saslHandler{
-		SASLAuth: c.SASLAuth,
-		SASLUser: c.SASLUser,
-		SASLPass: c.SASLPass,
-	}
 
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
 	c.AddOutboundHandler(h.passHandler)
-	h.saslHandler.install(c)
 }
 
 func (h *capabilityHandler) passHandler(c *Connection, m string) {

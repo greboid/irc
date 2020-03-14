@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type saslHandler struct {
+type SaslHandler struct {
 	SASLAuth    bool
 	SASLUser    string
 	SASLPass    string
@@ -17,7 +17,15 @@ type saslHandler struct {
 	saslMethods []string
 }
 
-func (h *saslHandler) install(c *Connection) {
+func NewSASLHandler(useSasl bool, saslUser string, saslPass string) *SaslHandler {
+	return &SaslHandler{
+		SASLAuth:    useSasl,
+		SASLUser:    saslUser,
+		SASLPass:    saslPass,
+	}
+}
+
+func (h *SaslHandler) Install(c *Connection) {
 	_ = c.Bus.Subscribe("+cap", h.handleCapAdd)
 	_ = c.Bus.Subscribe("-cap", h.handleCapDel)
 	c.AddInboundHandler("900", h.handleLoggedinAs)
@@ -32,7 +40,7 @@ func (h *saslHandler) install(c *Connection) {
 	c.AddInboundHandler("AUTHENTICATE", h.handleAuthenticate)
 }
 
-func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
+func (h *SaslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	if cap.name != "sasl" || c.saslStarted {
 		return
 	}
@@ -48,7 +56,7 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func (h *saslHandler) checkSASLSupported(cap *capabilityStruct) bool {
+func (h *SaslHandler) checkSASLSupported(cap *capabilityStruct) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
 		if !contains(strings.Split(cap.values, ","), "PLAIN") {
@@ -61,37 +69,37 @@ func (h *saslHandler) checkSASLSupported(cap *capabilityStruct) bool {
 	return false
 }
 
-func (h *saslHandler) handleCapDel(*capabilityStruct) {}
+func (h *SaslHandler) handleCapDel(*capabilityStruct) {}
 
-func (h *saslHandler) handleLoggedinAs(*Connection, *Message) {}
+func (h *SaslHandler) handleLoggedinAs(*Connection, *Message) {}
 
-func (h *saslHandler) handleLoggedOut(*Connection, *Message) {}
+func (h *SaslHandler) handleLoggedOut(*Connection, *Message) {}
 
-func (h *saslHandler) handleNickLocked(*Connection, *Message) {}
+func (h *SaslHandler) handleNickLocked(*Connection, *Message) {}
 
-func (h *saslHandler) handleAuthSuccess(c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthSuccess(c *Connection, _ *Message) {
 	log.Print("SASL Auth success")
 	c.saslFinished <- true
 }
 
-func (h *saslHandler) handleAuthFail(c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthFail(c *Connection, _ *Message) {
 	log.Print("SASL Auth failed")
 	c.saslFinished <- true
 }
 
-func (h *saslHandler) handleMessageTooLong(*Connection, *Message) {
+func (h *SaslHandler) handleMessageTooLong(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleAborted(*Connection, *Message) {
+func (h *SaslHandler) handleAborted(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleAlreadyAuthed(*Connection, *Message) {
+func (h *SaslHandler) handleAlreadyAuthed(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleMechanisms(*Connection, *Message) {
+func (h *SaslHandler) handleMechanisms(*Connection, *Message) {
 }
 
-func (h *saslHandler) handleAuthenticate(c *Connection, m *Message) {
+func (h *SaslHandler) handleAuthenticate(c *Connection, m *Message) {
 	if h.readyToAuth {
 		if m.Params == "+" {
 			h.authing = true
@@ -100,7 +108,7 @@ func (h *saslHandler) handleAuthenticate(c *Connection, m *Message) {
 	}
 }
 
-func (h *saslHandler) doAuth(c *Connection) {
+func (h *SaslHandler) doAuth(c *Connection) {
 	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s\x00%s\x00%s", h.SASLUser, h.SASLUser, h.SASLPass)))
 	for i := 0; i < len(encoded); i += 400 {
 		c.SendRawf("AUTHENTICATE %s", encoded[i:])
