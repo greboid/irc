@@ -91,9 +91,15 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 	if err := ps.conn.Bus.Subscribe("ChannelPart", partHandler); err != nil {
 		return err
 	}
+	defer func() {
+		_ = ps.conn.Bus.Unsubscribe("ChannelPart", partHandler)
+	}()
 	if err := ps.conn.Bus.Subscribe("ChannelMessage", messageHandler); err != nil {
 		return err
 	}
+	defer func() {
+		_ = ps.conn.Bus.Unsubscribe("ChannelMessage", messageHandler)
+	}()
 	for {
 		select {
 		case <-exitLoop:
