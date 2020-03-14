@@ -14,6 +14,7 @@ type saslHandler struct {
 	authed      bool
 	readyToAuth bool
 	authing     bool
+	saslMethods []string
 }
 
 func (h *saslHandler) install(c *Connection) {
@@ -38,7 +39,7 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	if !h.authed {
 		c.saslStarted = true
 	}
-	if !h.checkSASLSupported(c) {
+	if !h.checkSASLSupported(c, cap) {
 		log.Printf("SASL Finished")
 		c.saslFinished <- true
 		return
@@ -47,16 +48,10 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func (h *saslHandler) checkSASLSupported(c *Connection) bool {
+func (h *saslHandler) checkSASLSupported(c *Connection, cap *capabilityStruct) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
-		var saslmethods []string
-		for key, capability := range c.capabilityHandler.List {
-			if key == "sasl" && capability.acked {
-				saslmethods = strings.Split(capability.values, ",")
-			}
-		}
-		if !contains(saslmethods, "PLAIN") {
+		if !contains(strings.Split(cap.values, ","), "PLAIN") {
 			log.Printf("No supported SASL methods")
 			return false
 		}
