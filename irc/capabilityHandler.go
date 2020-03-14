@@ -8,9 +8,8 @@ import (
 )
 
 type capabilityHandler struct {
-	available   map[capabilityStruct]bool
+	List        map[string]*capabilityStruct
 	wanted      map[string]bool
-	acked       map[string]bool
 	listing     bool
 	requested   bool
 	finished    bool
@@ -19,14 +18,15 @@ type capabilityHandler struct {
 }
 
 type capabilityStruct struct {
-	name   string
-	values string
+	name         string
+	values       string
+	acked        bool
+	waitingonAck bool
 }
 
 func (h *capabilityHandler) install(c *Connection) {
-	h.available = map[capabilityStruct]bool{}
+	h.List = map[string]*capabilityStruct{}
 	h.wanted = map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true}
-	h.acked = map[string]bool{}
 	h.listing = false
 	h.requested = false
 	h.finished = false
@@ -39,15 +39,13 @@ func (h *capabilityHandler) install(c *Connection) {
 
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
-	c.AddOutboundHandler(passHandler(h))
+	c.AddOutboundHandler(h.passHandler)
 	h.saslHandler.install(c)
 }
 
-func passHandler(h *capabilityHandler) func(c *Connection, m string) {
-	return func(c *Connection, m string) {
-		if strings.HasPrefix(m, "PASS") {
-			h.Negotiate(c)
-		}
+func (h *capabilityHandler) passHandler(c *Connection, m string) {
+	if strings.HasPrefix(m, "PASS") {
+		h.Negotiate(c)
 	}
 }
 
@@ -88,35 +86,35 @@ func (h *capabilityHandler) handleLS(c *Connection, tokenised []string) {
 	} else {
 		h.listing = false
 	}
-	h.available = h.parseCapabilities(tokenised)
+	h.List = h.parseCapabilities(tokenised)
 	if !h.listing {
 		h.capReq(c)
 	}
 }
 
-func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[capabilityStruct]bool {
-	capabilities := map[capabilityStruct]bool{}
+func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*capabilityStruct {
+	capabilities := map[string]*capabilityStruct{}
 	for _, token := range tokenised {
-		capability := capabilityStruct{}
+		capability := &capabilityStruct{}
 		if strings.Contains(token, "=") {
 			values := strings.SplitN(token, "=", 2)
 			capability.name = values[0]
 			capability.values = values[1]
 		} else {
 			capability.name = token
-			capability.values = ""
 		}
-		capabilities[capability] = true
+		capabilities[capability.name] = capability
 	}
 	return capabilities
 }
 
 func (h *capabilityHandler) capReq(c *Connection) {
 	var reqs []string
-	for capability := range h.available {
-		_, ok := h.wanted[capability.name]
+	for name, capability := range h.List {
+		_, ok := h.wanted[name]
 		if ok {
-			reqs = append(reqs, capability.name)
+			reqs = append(reqs, name)
+			capability.waitingonAck = true
 		}
 	}
 	c.SendRawf("CAP REQ :%s", strings.Join(reqs, " "))
@@ -125,13 +123,17 @@ func (h *capabilityHandler) capReq(c *Connection) {
 func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	h.mutex.Lock()
 	for _, token := range tokenised {
-		h.acked[token] = true
-		c.Bus.Publish("+cap", c, token)
+		capability, ok := h.List[token]
+		if ok {
+			capability.acked = true
+			capability.waitingonAck = false
+			c.Bus.Publish("+cap", c, capability)
+		}
 	}
 	h.mutex.Unlock()
-	if len(h.acked) == len(h.wanted) {
+	if countAcked(h.List) == len(h.wanted) {
 		h.finished = true
-		if _, ok := h.acked["sasl"]; ok {
+		if _, ok := h.List["sasl"]; ok {
 			log.Print("Waiting for SASL")
 			h.waitonSasl(c)
 		}
@@ -149,14 +151,29 @@ func (h *capabilityHandler) waitonSasl(c *Connection) {
 }
 
 func (h *capabilityHandler) handleNAK(tokenised []string) {
-	delete(h.wanted, tokenised[0])
+	for _, token := range tokenised {
+		capability, ok := h.List[token]
+		if ok {
+			capability.waitingonAck = false
+		}
+	}
 }
 
 func (h *capabilityHandler) handleDel(c *Connection, tokenised []string) {
 	toRemove := h.parseCapabilities(tokenised)
-	for remove := range toRemove {
-		delete(h.wanted, remove.name)
-		delete(h.available, remove)
-		c.Bus.Publish("-cap", remove.name)
+	for remove, capability := range toRemove {
+		capability.acked = false
+		capability.waitingonAck = false
+		c.Bus.Publish("-cap", remove)
 	}
+}
+
+func countAcked(list map[string]*capabilityStruct) int {
+	acked := 0
+	for _, capability := range list {
+		if !capability.waitingonAck && capability.acked {
+			acked++
+		}
+	}
+	return acked
 }

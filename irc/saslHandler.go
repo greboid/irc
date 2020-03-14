@@ -31,8 +31,8 @@ func (h *saslHandler) install(c *Connection) {
 	c.AddInboundHandler("AUTHENTICATE", h.handleAuthenticate)
 }
 
-func (h *saslHandler) handleCapAdd(c *Connection, cap string) {
-	if cap != "sasl" || c.saslStarted {
+func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
+	if cap.name != "sasl" || c.saslStarted {
 		return
 	}
 	if !h.authed {
@@ -51,22 +51,22 @@ func (h *saslHandler) checkSASLSupported(c *Connection) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
 		var saslmethods []string
-		for key := range c.capabilityHandler.available {
-			if key.name == "sasl" {
-				saslmethods = strings.Split(key.values, ",")
+		for key, capability := range c.capabilityHandler.List {
+			if key == "sasl" && capability.acked {
+				saslmethods = strings.Split(capability.values, ",")
 			}
 		}
-		_, ok := contains(saslmethods, "PLAIN")
-		if !ok {
+		if !contains(saslmethods, "PLAIN") {
 			log.Printf("No supported SASL methods")
+			return false
 		}
-		return ok
+		return true
 	}
 	log.Print("SASL not configured")
 	return false
 }
 
-func (h *saslHandler) handleCapDel(_ string) {}
+func (h *saslHandler) handleCapDel(cap *capabilityStruct) {}
 
 func (h *saslHandler) handleLoggedinAs(*Connection, *Message) {}
 
@@ -115,11 +115,11 @@ func (h *saslHandler) doAuth(c *Connection) {
 	}
 }
 
-func contains(s []string, e string) (*string, bool) {
+func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
-			return &e, true
+			return true
 		}
 	}
-	return nil, false
+	return false
 }
