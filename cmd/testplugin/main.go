@@ -50,7 +50,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Err receiving message: %v", err)
 		}
-		log.Printf("Message: %s", msg.Message)
+		log.Printf("%s: %s - %s", msg.Channel, msg.Source, msg.Message)
 	}
 
 }

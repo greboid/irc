@@ -5,6 +5,7 @@ option go_package = "rpc";
 message ChannelMessage {
     string channel = 1;
     string message = 2;
+    string source = 3;
 }
 
 message RawMessage {
