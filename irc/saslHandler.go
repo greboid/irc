@@ -39,7 +39,7 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	if !h.authed {
 		c.saslStarted = true
 	}
-	if !h.checkSASLSupported(c, cap) {
+	if !h.checkSASLSupported(cap) {
 		log.Printf("SASL Finished")
 		c.saslFinished <- true
 		return
@@ -48,7 +48,7 @@ func (h *saslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func (h *saslHandler) checkSASLSupported(c *Connection, cap *capabilityStruct) bool {
+func (h *saslHandler) checkSASLSupported(cap *capabilityStruct) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
 		if !contains(strings.Split(cap.values, ","), "PLAIN") {
@@ -61,7 +61,7 @@ func (h *saslHandler) checkSASLSupported(c *Connection, cap *capabilityStruct) b
 	return false
 }
 
-func (h *saslHandler) handleCapDel(cap *capabilityStruct) {}
+func (h *saslHandler) handleCapDel(*capabilityStruct) {}
 
 func (h *saslHandler) handleLoggedinAs(*Connection, *Message) {}
 
