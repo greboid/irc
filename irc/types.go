@@ -53,7 +53,6 @@ type Connection struct {
 	registered        bool
 	capabilityHandler capabilityHandler
 	nickHandler       nickHandler
-	debugHandler      debugHandler
 	Bus               messagebus.MessageBus
 	saslStarted       bool
 }

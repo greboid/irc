@@ -8,6 +8,12 @@ type debugHandler struct {
 	debug bool
 }
 
+func NewDebugHandler(debug bool) *debugHandler {
+	return &debugHandler{
+		debug: debug,
+	}
+}
+
 func (h *debugHandler) install(c *Connection) {
 	c.AddInboundHandler("*", h.handleMessage)
 	c.AddOutboundHandler(h.handleOutboundMessage)

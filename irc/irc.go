@@ -106,7 +106,6 @@ func (irc *Connection) Init() {
 	irc.Bus = messagebus.New(10)
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.capabilityHandler = capabilityHandler{}
-	irc.debugHandler = debugHandler{irc.Debug}
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)
@@ -136,7 +135,7 @@ func (irc *Connection) Connect() error {
 	irc.AddInboundHandlers(defaultInboundHandlers)
 	irc.capabilityHandler.install(irc)
 	irc.nickHandler.install(irc)
-	irc.debugHandler.install(irc)
+	NewDebugHandler(irc.Debug).install(irc)
 	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
