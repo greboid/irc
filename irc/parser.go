@@ -37,7 +37,6 @@ func (irc *Connection) parseMesage(line string) *Message {
 	if len(split) > 1 {
 		params = append(params, split[1])
 	}
-	message.ParamsArray = params
-	message.Params = strings.Join(params, " ")
+	message.Params = params
 	return message
 }

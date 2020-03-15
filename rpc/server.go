@@ -84,7 +84,7 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 		}
 	}
 	messageHandler := func(message irc.Message) {
-		if channelName == "*" || strings.ToLower(message.ParamsArray[0]) == strings.ToLower(channelName) {
+		if channelName == "*" || strings.ToLower(message.Params[0]) == strings.ToLower(channelName) {
 			chanMessage <- &message
 		}
 	}
@@ -97,7 +97,7 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 		case <-exitLoop:
 			return nil
 		case msg := <-chanMessage:
-			if err := stream.Send(&ChannelMessage{Channel: strings.ToLower(msg.ParamsArray[0]), Message: strings.Join(msg.ParamsArray[1:], " "), Source: msg.Source}); err != nil {
+			if err := stream.Send(&ChannelMessage{Channel: strings.ToLower(msg.Params[0]), Message: strings.Join(msg.Params[1:], " "), Source: msg.Source}); err != nil {
 				return err
 			}
 		}

@@ -55,12 +55,11 @@ type Connection struct {
 }
 
 type Message struct {
-	Raw         string
-	Tags        string
-	Source      string
-	Verb        string
-	ParamsArray []string
-	Params      string
+	Raw    string
+	Tags   string
+	Source string
+	Verb   string
+	Params []string
 }
 
 type InboundHandler struct {
