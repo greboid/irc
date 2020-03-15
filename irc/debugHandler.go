@@ -2,7 +2,6 @@ package irc
 
 import (
 	"log"
-	"strings"
 )
 
 type debugHandler struct {
@@ -22,7 +21,7 @@ func (h *debugHandler) install(c *Connection) {
 
 func (h *debugHandler) handleMessage(_ *Connection, m *Message) {
 	if h.debug {
-		log.Printf("In : %s %s %s", m.Source, m.Verb, strings.Join(m.Params, " "))
+		log.Printf("In : %s", m.Raw)
 	}
 }
 
