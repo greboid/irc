@@ -4,12 +4,6 @@ import (
 	"strings"
 )
 
-var (
-	defaultInboundHandlers = map[string]func(c *Connection, m *Message){
-		"ERROR": quitOnError,
-	}
-)
-
 func (irc *Connection) addOutboundHandlers(handlers []func(c *Connection, m string)) {
 	for _, handler := range handlers {
 		irc.AddOutboundHandler(handler)
@@ -49,8 +43,4 @@ func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
 		go handler(irc, m)
 	}
-}
-
-func quitOnError(c *Connection, _ *Message) {
-	c.Finished <- true
 }

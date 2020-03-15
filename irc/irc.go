@@ -131,7 +131,7 @@ func (irc *Connection) Connect() error {
 
 	go irc.readLoop()
 	go irc.writeLoop()
-	irc.AddInboundHandlers(defaultInboundHandlers)
+	NewErrorHandler().install(irc)
 	NewPingHandler().install(irc)
 	NewCapabilityHandler().install(irc)
 	NewNickHandler(irc.ClientConfig.Nick).install(irc)
