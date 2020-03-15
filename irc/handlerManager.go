@@ -6,7 +6,6 @@ import (
 
 var (
 	defaultInboundHandlers = map[string]func(c *Connection, m *Message){
-		"PING":  pong,
 		"ERROR": quitOnError,
 	}
 )
@@ -50,10 +49,6 @@ func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
 		go handler(irc, m)
 	}
-}
-
-func pong(c *Connection, m *Message) {
-	c.SendRawf("PONG :%v", m.ParamsArray[0])
 }
 
 func quitOnError(c *Connection, _ *Message) {
