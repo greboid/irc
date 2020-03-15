@@ -37,13 +37,7 @@ func NewCapabilityHandler() *capabilityHandler {
 func (h *capabilityHandler) install(c *Connection) {
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
-	c.AddOutboundHandler(h.passHandler)
-}
-
-func (h *capabilityHandler) passHandler(c *Connection, m string) {
-	if strings.HasPrefix(m, "PASS") {
-		h.Negotiate(c)
-	}
+	h.Negotiate(c)
 }
 
 func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
@@ -59,19 +53,19 @@ func (h *capabilityHandler) Negotiate(irc *Connection) {
 func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 	switch m.Params[1] {
 	case "LS":
-		h.handleLS(c, m.Params[2:])
+		h.handleLS(c, strings.Split(m.Params[2], " "))
 		break
 	case "ACK":
-		h.handleACK(c, m.Params[2:])
+		h.handleACK(c, strings.Split(m.Params[2], " "))
 		break
 	case "NAK":
-		h.handleNAK(m.Params[2:])
+		h.handleNAK(strings.Split(m.Params[2], " "))
 		break
 	case "NEW":
-		h.handleLS(c, m.Params[2:])
+		h.handleLS(c, strings.Split(m.Params[2], " "))
 		break
 	case "DEL":
-		h.handleDel(c, m.Params[2:])
+		h.handleDel(c, strings.Split(m.Params[2], " "))
 		break
 	}
 }
