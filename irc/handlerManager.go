@@ -17,6 +17,19 @@ func (irc *Connection) AddOutboundHandler(f func(c *Connection, m string)) {
 	irc.outboundHandlers = append(irc.outboundHandlers, f)
 }
 
+func (irc *Connection) AddRawHandlers(handlers []func(c *Connection, m RawMessage)) {
+	for _, handler := range handlers {
+		irc.AddRawHandler(handler)
+	}
+}
+
+func (irc *Connection) AddRawHandler(f func(c *Connection, m RawMessage)) {
+	if !irc.initialised {
+		irc.Init()
+	}
+	irc.rawHandlers = append(irc.rawHandlers, f)
+}
+
 func (irc *Connection) AddInboundHandlers(handlers map[string]func(c *Connection, m *Message)) {
 	for verb, handler := range handlers {
 		irc.AddInboundHandler(verb, handler)
@@ -41,6 +54,12 @@ func (irc *Connection) runInboundHandlers(m *Message) {
 
 func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
+		go handler(irc, m)
+	}
+}
+
+func (irc *Connection) runRawHandlers(m RawMessage) {
+	for _, handler := range irc.rawHandlers {
 		go handler(irc, m)
 	}
 }

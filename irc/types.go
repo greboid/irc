@@ -45,6 +45,7 @@ type Connection struct {
 	Finished         chan bool
 	writeChan        chan string
 	errorChannel     chan error
+	rawHandlers		 []func(*Connection, RawMessage)
 	inboundHandlers  map[string][]func(*Connection, *Message)
 	outboundHandlers []func(*Connection, string)
 	signals          chan os.Signal
@@ -52,6 +53,11 @@ type Connection struct {
 	registered       bool
 	listeners        eventListeners
 	saslStarted      bool
+}
+
+type RawMessage struct {
+	message string
+	out     bool
 }
 
 type Message struct {

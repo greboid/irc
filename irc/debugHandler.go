@@ -15,18 +15,25 @@ func NewDebugHandler(debug bool) *debugHandler {
 }
 
 func (h *debugHandler) install(c *Connection) {
-	c.AddInboundHandler("*", h.handleMessage)
-	c.AddOutboundHandler(h.handleOutboundMessage)
+	c.AddRawHandler(h.handleRawMessage)
 }
 
-func (h *debugHandler) handleMessage(_ *Connection, m *Message) {
-	if h.debug {
-		log.Printf("In : %s", m.Raw)
+func (h *debugHandler) handleRawMessage(c *Connection, m RawMessage) {
+	if m.out {
+		h.handleOutboundMessage(c, m)
+	} else {
+		h.handleMessage(c, m)
 	}
 }
 
-func (h *debugHandler) handleOutboundMessage(_ *Connection, m string) {
+func (h *debugHandler) handleMessage(_ *Connection, m RawMessage) {
 	if h.debug {
-		log.Printf("Out: %s", m)
+		log.Printf("In : %s", m.message)
+	}
+}
+
+func (h *debugHandler) handleOutboundMessage(_ *Connection, m RawMessage) {
+	if h.debug {
+		log.Printf("Out: %s", m.message)
 	}
 }

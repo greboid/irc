@@ -43,6 +43,7 @@ func (irc *Connection) readLoop() {
 			break
 		}
 		irc.lastMessage = time.Now()
+		go irc.runRawHandlers(RawMessage{message:msg, out: false})
 		message := irc.parseMesage(msg)
 		go irc.runInboundHandlers(message)
 	}
@@ -60,7 +61,8 @@ func (irc *Connection) writeLoop() {
 			if !ok || b == "" || irc.socket == nil {
 				break
 			}
-			irc.runOutboundHandlers(b)
+			go irc.runRawHandlers(RawMessage{message:b, out: true})
+			go irc.runOutboundHandlers(b)
 			_, err := irc.socket.Write([]byte(b))
 			if err != nil {
 				irc.errorChannel <- err
