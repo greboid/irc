@@ -23,45 +23,56 @@ func Test_capabilityHandler_parseCapabilities(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   map[CapabilityStruct]bool
+		want   map[string]*CapabilityStruct
 	}{
 		{
 			name: "simple",
 			args: args{tokenised: []string{"account-notify"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "account-notify", values: ""}: true},
+			want: map[string]*CapabilityStruct{
+				"account-notify": {name: "account-notify", values: ""},
+			},
 		},
 		{
 			name: "simple + value",
 			args: args{tokenised: []string{"sasl=PLAIN,EXTERNAL"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "sasl", values: "PLAIN,EXTERNAL"}: true},
+			want: map[string]*CapabilityStruct{
+				"sasl": {name: "sasl", values: "PLAIN,EXTERNAL"},
+			},
 		},
 		{
 			name: "domain",
 			args: args{tokenised: []string{"draft/chathistory"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "draft/chathistory", values: ""}: true},
+			want: map[string]*CapabilityStruct{
+				"draft/chathistory": {name: "draft/chathistory", values: ""},
+			},
 		},
 		{
 			name: "domain + value",
 			args: args{tokenised: []string{"draft/languages=13,en,~bs,~de,~el,~en-AU,~es,~fr-FR,~no,~pl,~pt-BR,~ro,~tr-TR,~zh-CN"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "draft/languages", values: "13,en,~bs,~de,~el,~en-AU,~es,~fr-FR,~no,~pl,~pt-BR,~ro,~tr-TR,~zh-CN"}: true},
+			want: map[string]*CapabilityStruct{
+				"draft/languages": {name: "draft/languages", values: "13,en,~bs,~de,~el,~en-AU,~es,~fr-FR,~no,~pl,~pt-BR,~ro,~tr-TR,~zh-CN"},
+			},
 		},
 		{
 			name: "simple + multiple values",
 			args: args{tokenised: []string{"sts=duration=2765100,port=6697"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "sts", values: "duration=2765100,port=6697"}: true},
+			want: map[string]*CapabilityStruct{
+				"sts": {name: "sts", values: "duration=2765100,port=6697"},
+			},
 		},
 		{
 			name: "multiple",
 			args: args{tokenised: []string{"sasl=PLAIN,EXTERNAL", "server-time", "sts=duration=2765100,port=6697"}},
-			want: map[CapabilityStruct]bool{CapabilityStruct{name: "sasl", values: "PLAIN,EXTERNAL"}: true, CapabilityStruct{name: "server-time", values: ""}: true, CapabilityStruct{name: "sts", values: "duration=2765100,port=6697"}: true},
+			want: map[string]*CapabilityStruct{
+				"sasl": {name: "sasl", values: "PLAIN,EXTERNAL"},
+				"server-time": {name: "server-time", values: ""},
+				"sts": {name: "sts", values: "duration=2765100,port=6697"},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ca := &capabilityHandler{
-				available: tt.fields.available,
-				wanted:    tt.fields.wanted,
-				acked:     tt.fields.acked,
 				listing:   tt.fields.listing,
 				requested: tt.fields.requested,
 				finished:  tt.fields.finished,
