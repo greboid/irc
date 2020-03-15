@@ -52,7 +52,6 @@ type Connection struct {
 	initialised       bool
 	registered        bool
 	capabilityHandler capabilityHandler
-	nickHandler       nickHandler
 	Bus               messagebus.MessageBus
 	saslStarted       bool
 }

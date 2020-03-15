@@ -134,7 +134,7 @@ func (irc *Connection) Connect() error {
 	go irc.writeLoop()
 	irc.AddInboundHandlers(defaultInboundHandlers)
 	irc.capabilityHandler.install(irc)
-	irc.nickHandler.install(irc)
+	NewNickHandler(irc.ClientConfig.Nick).install(irc)
 	NewDebugHandler(irc.Debug).install(irc)
 	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc)
 	if len(irc.ClientConfig.Password) > 0 {

@@ -13,10 +13,15 @@ type nickHandler struct {
 	letters   []rune
 }
 
+func NewNickHandler(preferredNickname string) *nickHandler {
+	return &nickHandler{
+		preferred: preferredNickname,
+		current:   preferredNickname,
+		letters: []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+	}
+}
+
 func (h *nickHandler) install(c *Connection) {
-	h.letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	h.preferred = c.ClientConfig.Nick
-	h.current = h.preferred
 	c.AddInboundHandler("432", h.erroneusNickame)
 	c.AddInboundHandler("433", h.nicknameInUse)
 	c.AddInboundHandler("436", h.nicknameCollision)
