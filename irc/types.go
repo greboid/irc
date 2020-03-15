@@ -1,7 +1,6 @@
 package irc
 
 import (
-	externalbus "github.com/vardius/message-bus"
 	"net"
 	"os"
 	"time"
@@ -51,7 +50,7 @@ type Connection struct {
 	signals          chan os.Signal
 	initialised      bool
 	registered       bool
-	bus              externalbus.MessageBus
+	listeners        eventListeners
 	saslStarted      bool
 }
 

@@ -102,7 +102,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.bus = newExternalBus(10)
+	irc.listeners = newEventListeners()
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
