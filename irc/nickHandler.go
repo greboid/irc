@@ -29,8 +29,8 @@ func (h *nickHandler) install(c *Connection) {
 }
 
 func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
-	log.Printf("Nickname changed: %s", m.ParamsArray[0])
-	h.current = m.ParamsArray[0]
+	log.Printf("Nickname changed: %s", m.Params[0])
+	h.current = m.Params[0]
 }
 
 func (h *nickHandler) nicknameCollision(c *Connection, m *Message) {

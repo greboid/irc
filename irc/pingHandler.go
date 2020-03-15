@@ -12,5 +12,5 @@ func (h *pingHandler) install(c *Connection) {
 }
 
 func (h *pingHandler) pong(c *Connection, m *Message) {
-	c.SendRawf("PONG :%v", m.ParamsArray[0])
+	c.SendRawf("PONG :%v", m.Params[0])
 }

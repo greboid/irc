@@ -57,22 +57,21 @@ func (h *capabilityHandler) Negotiate(irc *Connection) {
 }
 
 func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
-	tokenised := strings.Split(m.Params, " ")[1:]
-	switch tokenised[0] {
+	switch m.Params[1] {
 	case "LS":
-		h.handleLS(c, tokenised[1:])
+		h.handleLS(c, m.Params[2:])
 		break
 	case "ACK":
-		h.handleACK(c, tokenised[1:])
+		h.handleACK(c, m.Params[2:])
 		break
 	case "NAK":
-		h.handleNAK(tokenised[1:])
+		h.handleNAK(m.Params[2:])
 		break
 	case "NEW":
-		h.handleLS(c, tokenised[1:])
+		h.handleLS(c, m.Params[2:])
 		break
 	case "DEL":
-		h.handleDel(c, tokenised[1:])
+		h.handleDel(c, m.Params[2:])
 		break
 	}
 }

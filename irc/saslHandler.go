@@ -101,7 +101,7 @@ func (h *SaslHandler) handleMechanisms(*Connection, *Message) {
 
 func (h *SaslHandler) handleAuthenticate(c *Connection, m *Message) {
 	if h.readyToAuth {
-		if m.Params == "+" {
+		if len(m.Params) == 1 && m.Params[0] == "+" {
 			h.authing = true
 			h.doAuth(c)
 		}
