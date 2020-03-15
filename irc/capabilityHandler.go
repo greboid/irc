@@ -23,14 +23,18 @@ type capabilityStruct struct {
 	waitingonAck bool
 }
 
-func (h *capabilityHandler) install(c *Connection) {
-	h.List = map[string]*capabilityStruct{}
-	h.wanted = map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true}
-	h.listing = false
-	h.requested = false
-	h.finished = false
-	h.mutex = &sync.Mutex{}
+func NewCapabilityHandler() *capabilityHandler {
+	return &capabilityHandler{
+		List:      map[string]*capabilityStruct{},
+		wanted:    map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true},
+		listing:   false,
+		requested: false,
+		finished:  false,
+		mutex:     &sync.Mutex{},
+	}
+}
 
+func (h *capabilityHandler) install(c *Connection) {
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
 	c.AddOutboundHandler(h.passHandler)

@@ -51,7 +51,6 @@ type Connection struct {
 	signals           chan os.Signal
 	initialised       bool
 	registered        bool
-	capabilityHandler capabilityHandler
 	Bus               messagebus.MessageBus
 	saslStarted       bool
 }

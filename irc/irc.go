@@ -105,7 +105,6 @@ func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
 	irc.Bus = messagebus.New(10)
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
-	irc.capabilityHandler = capabilityHandler{}
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)
@@ -133,7 +132,7 @@ func (irc *Connection) Connect() error {
 	go irc.readLoop()
 	go irc.writeLoop()
 	irc.AddInboundHandlers(defaultInboundHandlers)
-	irc.capabilityHandler.install(irc)
+	NewCapabilityHandler().install(irc)
 	NewNickHandler(irc.ClientConfig.Nick).install(irc)
 	NewDebugHandler(irc.Debug).install(irc)
 	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc)
