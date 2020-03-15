@@ -4,8 +4,7 @@ type errorHandler struct {
 }
 
 func NewErrorHandler() *errorHandler {
-	return &errorHandler{
-	}
+	return &errorHandler{}
 }
 
 func (h *errorHandler) install(c *Connection) {

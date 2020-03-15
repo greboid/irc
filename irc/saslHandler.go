@@ -19,15 +19,15 @@ type SaslHandler struct {
 
 func NewSASLHandler(useSasl bool, saslUser string, saslPass string) *SaslHandler {
 	return &SaslHandler{
-		SASLAuth:    useSasl,
-		SASLUser:    saslUser,
-		SASLPass:    saslPass,
+		SASLAuth: useSasl,
+		SASLUser: saslUser,
+		SASLPass: saslPass,
 	}
 }
 
 func (h *SaslHandler) Install(c *Connection) {
-	_ = c.Bus.Subscribe("+cap", h.handleCapAdd)
-	_ = c.Bus.Subscribe("-cap", h.handleCapDel)
+	c.SubscribeCapAdd(h.handleCapAdd)
+	c.SubscribeCapDel(h.handleCapDel)
 	c.AddInboundHandler("900", h.handleLoggedinAs)
 	c.AddInboundHandler("901", h.handleLoggedOut)
 	c.AddInboundHandler("902", h.handleNickLocked)
@@ -40,7 +40,7 @@ func (h *SaslHandler) Install(c *Connection) {
 	c.AddInboundHandler("AUTHENTICATE", h.handleAuthenticate)
 }
 
-func (h *SaslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
+func (h *SaslHandler) handleCapAdd(c *Connection, cap *CapabilityStruct) {
 	if cap.name != "sasl" || c.saslStarted {
 		return
 	}
@@ -56,7 +56,7 @@ func (h *SaslHandler) handleCapAdd(c *Connection, cap *capabilityStruct) {
 	c.SendRaw("AUTHENTICATE PLAIN")
 }
 
-func (h *SaslHandler) checkSASLSupported(cap *capabilityStruct) bool {
+func (h *SaslHandler) checkSASLSupported(cap *CapabilityStruct) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
 		log.Print("SASL configured")
 		if !contains(strings.Split(cap.values, ","), "PLAIN") {
@@ -69,7 +69,7 @@ func (h *SaslHandler) checkSASLSupported(cap *capabilityStruct) bool {
 	return false
 }
 
-func (h *SaslHandler) handleCapDel(*capabilityStruct) {}
+func (h *SaslHandler) handleCapDel(*Connection, *CapabilityStruct) {}
 
 func (h *SaslHandler) handleLoggedinAs(*Connection, *Message) {}
 

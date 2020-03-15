@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
-	messagebus "github.com/vardius/message-bus"
 	"log"
 	"net"
 	"os"
@@ -103,7 +102,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.Bus = messagebus.New(10)
+	irc.bus = newExternalBus(10)
 	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)

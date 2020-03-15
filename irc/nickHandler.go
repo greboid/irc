@@ -17,7 +17,7 @@ func NewNickHandler(preferredNickname string) *nickHandler {
 	return &nickHandler{
 		preferred: preferredNickname,
 		current:   preferredNickname,
-		letters: []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+		letters:   []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
 	}
 }
 

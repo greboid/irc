@@ -4,8 +4,7 @@ type pingHandler struct {
 }
 
 func NewPingHandler() *pingHandler {
-	return &pingHandler{
-	}
+	return &pingHandler{}
 }
 
 func (h *pingHandler) install(c *Connection) {

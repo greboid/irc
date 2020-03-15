@@ -1,7 +1,7 @@
 package irc
 
 import (
-	"github.com/vardius/message-bus"
+	externalbus "github.com/vardius/message-bus"
 	"net"
 	"os"
 	"time"
@@ -29,30 +29,30 @@ type ConnectionConfig struct {
 }
 
 type Connection struct {
-	Server            string
-	Password          string
-	Nickname          string
-	UseTLS            bool
-	Debug             bool
-	SASLAuth          bool
-	SASLUser          string
-	SASLPass          string
-	ConnConfig        ConnectionConfig
-	ClientConfig      ClientConfig
-	socket            net.Conn
-	lastMessage       time.Time
-	saslFinished      chan bool
-	quitting          chan bool
-	Finished          chan bool
-	writeChan         chan string
-	errorChannel      chan error
-	inboundHandlers   map[string][]func(*Connection, *Message)
-	outboundHandlers  []func(*Connection, string)
-	signals           chan os.Signal
-	initialised       bool
-	registered        bool
-	Bus               messagebus.MessageBus
-	saslStarted       bool
+	Server           string
+	Password         string
+	Nickname         string
+	UseTLS           bool
+	Debug            bool
+	SASLAuth         bool
+	SASLUser         string
+	SASLPass         string
+	ConnConfig       ConnectionConfig
+	ClientConfig     ClientConfig
+	socket           net.Conn
+	lastMessage      time.Time
+	saslFinished     chan bool
+	quitting         chan bool
+	Finished         chan bool
+	writeChan        chan string
+	errorChannel     chan error
+	inboundHandlers  map[string][]func(*Connection, *Message)
+	outboundHandlers []func(*Connection, string)
+	signals          chan os.Signal
+	initialised      bool
+	registered       bool
+	bus              externalbus.MessageBus
+	saslStarted      bool
 }
 
 type Message struct {

@@ -8,15 +8,15 @@ import (
 )
 
 type capabilityHandler struct {
-	List        map[string]*capabilityStruct
-	wanted      map[string]bool
-	listing     bool
-	requested   bool
-	finished    bool
-	mutex       *sync.Mutex
+	List      map[string]*CapabilityStruct
+	wanted    map[string]bool
+	listing   bool
+	requested bool
+	finished  bool
+	mutex     *sync.Mutex
 }
 
-type capabilityStruct struct {
+type CapabilityStruct struct {
 	name         string
 	values       string
 	acked        bool
@@ -25,7 +25,7 @@ type capabilityStruct struct {
 
 func NewCapabilityHandler() *capabilityHandler {
 	return &capabilityHandler{
-		List:      map[string]*capabilityStruct{},
+		List:      map[string]*CapabilityStruct{},
 		wanted:    map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true},
 		listing:   false,
 		requested: false,
@@ -89,10 +89,10 @@ func (h *capabilityHandler) handleLS(c *Connection, tokenised []string) {
 	}
 }
 
-func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*capabilityStruct {
-	capabilities := map[string]*capabilityStruct{}
+func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*CapabilityStruct {
+	capabilities := map[string]*CapabilityStruct{}
 	for _, token := range tokenised {
-		capability := &capabilityStruct{}
+		capability := &CapabilityStruct{}
 		if strings.Contains(token, "=") {
 			values := strings.SplitN(token, "=", 2)
 			capability.name = values[0]
@@ -124,7 +124,7 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 		if ok {
 			capability.acked = true
 			capability.waitingonAck = false
-			c.Bus.Publish("+cap", c, capability)
+			c.PublishCapAdd(c, capability)
 		}
 	}
 	h.mutex.Unlock()
@@ -158,14 +158,14 @@ func (h *capabilityHandler) handleNAK(tokenised []string) {
 
 func (h *capabilityHandler) handleDel(c *Connection, tokenised []string) {
 	toRemove := h.parseCapabilities(tokenised)
-	for remove, capability := range toRemove {
+	for _, capability := range toRemove {
 		capability.acked = false
 		capability.waitingonAck = false
-		c.Bus.Publish("-cap", remove)
+		c.PublishCapDel(c, capability)
 	}
 }
 
-func countAcked(list map[string]*capabilityStruct) int {
+func countAcked(list map[string]*CapabilityStruct) int {
 	acked := 0
 	for _, capability := range list {
 		if !capability.waitingonAck && capability.acked {

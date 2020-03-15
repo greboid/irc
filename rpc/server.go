@@ -78,28 +78,20 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 	exitLoop := make(chan bool, 1)
 	chanMessage := make(chan *irc.Message, 1)
 	channelName := channel.Name
-	partHandler := func(channelPart Channel) {
+	partHandler := func(channelPart irc.Channel) {
 		if channelPart.Name == channelName {
 			exitLoop <- true
 		}
 	}
-	messageHandler := func(message *irc.Message) {
+	messageHandler := func(message irc.Message) {
 		if channelName == "*" || strings.ToLower(message.ParamsArray[0]) == strings.ToLower(channelName) {
-			chanMessage <- message
+			chanMessage <- &message
 		}
 	}
-	if err := ps.conn.Bus.Subscribe("ChannelPart", partHandler); err != nil {
-		return err
-	}
-	defer func() {
-		_ = ps.conn.Bus.Unsubscribe("ChannelPart", partHandler)
-	}()
-	if err := ps.conn.Bus.Subscribe("ChannelMessage", messageHandler); err != nil {
-		return err
-	}
-	defer func() {
-		_ = ps.conn.Bus.Unsubscribe("ChannelMessage", messageHandler)
-	}()
+	ps.conn.SubscribeChannelPart(partHandler)
+	defer ps.conn.UnsubscribeChannelPart(partHandler)
+	ps.conn.SubscribeChannelMessage(messageHandler)
+	defer ps.conn.UnsubscribeChannelMessage(messageHandler)
 	for {
 		select {
 		case <-exitLoop:
