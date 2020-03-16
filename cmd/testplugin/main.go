@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"github.com/greboid/irc/rpc"
+	"github.com/kouhin/envflag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io"
@@ -13,24 +15,29 @@ import (
 )
 
 func main() {
-	conf, err := GetConfig()
-	if err != nil {
+	var (
+		RPCHost  = *flag.String("rpc-host", "localhost", "")
+		RPCPort  = *flag.Int("rpc-port", 8001, "")
+		RPCToken = *flag.String("rpc-token", "", "")
+		Channel  = *flag.String("channel", "", "")
+	)
+	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
 	time.Sleep(5 * time.Second)
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", conf.RPCHost, conf.RPCPort), grpc.WithTransportCredentials(creds))
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", RPCHost, RPCPort), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("failed to fake plugin: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 	client := rpc.NewIRCPluginClient(conn)
-	_, err = client.Ping(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.Empty{})
+	_, err = client.Ping(rpc.CtxWithToken(context.Background(), "bearer", RPCToken), &rpc.Empty{})
 	if err != nil {
 		log.Fatalf("Error getting messages: %s", err.Error())
 	}
-	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.ChannelMessage{
-		Channel: conf.Channel,
+	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", RPCToken), &rpc.ChannelMessage{
+		Channel: Channel,
 		Message: "RPC",
 	})
 	if err != nil {
@@ -38,7 +45,7 @@ func main() {
 	} else {
 		log.Print("Sent message, exiting.")
 	}
-	handler, err := client.GetMessages(rpc.CtxWithToken(context.Background(), "bearer", conf.RPCToken), &rpc.Channel{Name: conf.Channel})
+	handler, err := client.GetMessages(rpc.CtxWithToken(context.Background(), "bearer", RPCToken), &rpc.Channel{Name: Channel})
 	if err != nil {
 		log.Fatalf("Error getting messages: %s", err.Error())
 	}

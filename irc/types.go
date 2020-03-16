@@ -45,7 +45,7 @@ type Connection struct {
 	Finished         chan bool
 	writeChan        chan string
 	errorChannel     chan error
-	rawHandlers		 []func(*Connection, RawMessage)
+	rawHandlers      []func(*Connection, RawMessage)
 	inboundHandlers  map[string][]func(*Connection, *Message)
 	outboundHandlers []func(*Connection, string)
 	signals          chan os.Signal

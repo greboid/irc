@@ -36,7 +36,7 @@ func (web *Web) StartWeb() {
 	addBasicRoutes(e, web)
 	err := e.Start(fmt.Sprintf("0.0.0.0:%d", web.webPort))
 	if err != nil {
-		log.Panicf("Unable to start web server: %v", err)
+		log.Fatalf("Unable to start web server: %v", err)
 	}
 	log.Print("Finished web")
 }

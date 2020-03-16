@@ -64,9 +64,9 @@ func Test_capabilityHandler_parseCapabilities(t *testing.T) {
 			name: "multiple",
 			args: args{tokenised: []string{"sasl=PLAIN,EXTERNAL", "server-time", "sts=duration=2765100,port=6697"}},
 			want: map[string]*CapabilityStruct{
-				"sasl": {name: "sasl", values: "PLAIN,EXTERNAL"},
+				"sasl":        {name: "sasl", values: "PLAIN,EXTERNAL"},
 				"server-time": {name: "server-time", values: ""},
-				"sts": {name: "sts", values: "duration=2765100,port=6697"},
+				"sts":         {name: "sts", values: "duration=2765100,port=6697"},
 			},
 		},
 	}
