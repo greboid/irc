@@ -17,15 +17,11 @@ import (
 
 type GrpcServer struct {
 	Conn    *irc.Connection
-	DB      *database.DB
 	RPCPort int
 	Plugins []database.Plugin
 }
 
 func (s *GrpcServer) StartGRPC() {
-	for _, plugin := range s.Plugins {
-		_ = s.DB.CreatePlugin(plugin.Name, plugin.Token)
-	}
 	log.Print("Generating certificate")
 	certificate, err := generateSelfSignedCert()
 	if err != nil {
@@ -52,10 +48,19 @@ func (s *GrpcServer) authPlugin(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid auth token: %s", err.Error())
 	}
-	if !s.DB.CheckPlugin(token) {
+	if !s.checkPlugin(token) {
 		return nil, status.Errorf(codes.Unauthenticated, "access denied")
 	}
 	return ctx, nil
+}
+
+func (s *GrpcServer) checkPlugin(token string) bool {
+	for _, plugin := range s.Plugins {
+		if plugin.Token == token {
+			return true
+		}
+	}
+	return false
 }
 
 type pluginServer struct {

@@ -2,10 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
 	"github.com/greboid/irc/rpc"
-	"github.com/greboid/irc/web"
 	"github.com/kouhin/envflag"
 	"log"
 )
@@ -18,10 +16,7 @@ func main() {
 		Password      = flag.String("password", "", "The server password, if required")
 		TLS           = flag.Bool("tls", true, "Connect with TLS?")
 		Nickname      = flag.String("nick", "", "Nickname to use")
-		WebPort       = flag.Int("web-port", 8000, "Port for the web server to listen")
 		Channel       = flag.String("channel", "", "Channel to join on connect")
-		DBPath        = flag.String("db-path", "/data/db", "Path to user/plugin database")
-		AdminKey      = flag.String("admin-key", "", "Admin key for API")
 		Debug         = flag.Bool("debug", false, "Enable IRC debug output")
 		SASLAuth      = flag.Bool("sasl-auth", false, "Authenticate via SASL?")
 		SASLUser      = flag.String("sasl-user", "", "SASL username")
@@ -36,13 +31,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
-	db, err := database.New(*DBPath)
-	if err != nil {
-		log.Panicf("Unable to load config: %s", err.Error())
-	}
 	connection := irc.NewIRC(*Server, *Password, *Nickname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug)
-	rpcServer := rpc.GrpcServer{Conn: connection, DB: db, RPCPort: *RPCPort, Plugins: Plugins}
-	go web.NewWeb(*WebPort, *Channel, *AdminKey, connection, db).StartWeb()
+	rpcServer := rpc.GrpcServer{Conn: connection, RPCPort: *RPCPort, Plugins: Plugins}
 	log.Print("Adding callbacks")
 	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {
 		c.SendRawf("JOIN :%s", *Channel)

@@ -3,20 +3,21 @@ package web
 import (
 	"fmt"
 	"github.com/greboid/irc/database"
-	"github.com/greboid/irc/irc"
+	"github.com/greboid/irc/rpc"
 	"github.com/labstack/echo"
 	"log"
 )
 
 type Web struct {
-	irc      *irc.Connection
+	irc      rpc.IRCPluginClient
+	token    string
 	db       *database.DB
 	webPort  int
 	channel  string
 	adminKey string
 }
 
-func NewWeb(webPort int, channel string, adminKey string, irc *irc.Connection, db *database.DB) *Web {
+func NewWeb(webPort int, channel string, adminKey string, irc rpc.IRCPluginClient, db *database.DB) *Web {
 	log.Print("Initialising web")
 	return &Web{
 		irc:      irc,
