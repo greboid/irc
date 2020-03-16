@@ -16,10 +16,10 @@ import (
 
 func main() {
 	var (
-		RPCHost  = *flag.String("rpc-host", "localhost", "")
-		RPCPort  = *flag.Int("rpc-port", 8001, "")
-		RPCToken = *flag.String("rpc-token", "", "")
-		Channel  = *flag.String("channel", "", "")
+		RPCHost  = *flag.String("rpc-host", "localhost", "gRPC server to connect to")
+		RPCPort  = *flag.Int("rpc-port", 8001, "gRPC server port")
+		RPCToken = *flag.String("rpc-token", "", "gRPC authentication token")
+		Channel  = *flag.String("channel", "", "Channel to send messages to")
 	)
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
