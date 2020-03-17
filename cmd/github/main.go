@@ -88,6 +88,7 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	eventType := request.Header.Get("X-GitHub-Event")
 	header := strings.SplitN(request.Header.Get("X-Hub-Signature"), "=", 2)
 	if header[0] != "sha1" {
 		log.Printf("Error: %s", "Bad header")
@@ -98,21 +99,19 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		log.Printf("Error: %s", "Bad hash")
 		writer.WriteHeader(http.StatusBadRequest)
 	}
-	data := Githubhook{}
-	err = json.Unmarshal(bodyBytes, &data)
-	if err != nil {
-		log.Printf("Error unmarshalling: %s", err.Error())
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	_, _ = writer.Write([]byte("Delivered."))
-	go g.handleCommit(data)
+	switch eventType {
+	case "push":
+		data := pushhook{}
+		err = json.Unmarshal(bodyBytes, &data)
+		if err == nil {
+			go g.handleCommit(data)
+		}
+		go g.handleCommit(data)
+	}
 }
 
-func (g *github) handleCommit(data Githubhook) {
-	if data.Refspec == "" {
-		return
-	}
+func (g *github) handleCommit(data pushhook) {
 	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits to %s - %s",
 		data.Repository.FullName,
 		data.Pusher.Name,

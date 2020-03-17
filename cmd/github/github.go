@@ -15,15 +15,15 @@ func CheckGithubSecret(bodyBytes []byte, headerSecret string, githubSecret strin
 	return len(expected) == len(headerSecret) && subtle.ConstantTimeCompare([]byte(expected), []byte(headerSecret)) == 1
 }
 
-type Githubhook struct {
-	Refspec string `json:"ref"`
-	Repository Repository `json:"repository"`
-	Pusher Pusher `json:"pusher"`
-	Forced bool `json:"forced"`
-	Deleted bool `json:"deleted"`
-	Created bool `json:"created"`
-	CompareLink string `json:"compare"`
-	Commits []Commit `json:"commits"`
+type pushhook struct {
+	Refspec     string     `json:"ref"`
+	Repository  Repository `json:"repository"`
+	Pusher      Pusher     `json:"pusher"`
+	Forced      bool       `json:"forced"`
+	Deleted     bool       `json:"deleted"`
+	Created     bool       `json:"created"`
+	CompareLink string     `json:"compare"`
+	Commits     []Commit   `json:"commits"`
 }
 
 type Repository struct {
@@ -35,10 +35,10 @@ type Pusher struct {
 }
 
 type Commit struct {
-	ID string `json:"id"`
-	Message string `json:"message"`
-	URL string `json:"url"`
-	Author Author `json:"author"`
+	ID        string `json:"id"`
+	Message   string `json:"message"`
+	URL       string `json:"url"`
+	Author    Author `json:"author"`
 	Committer Author `json:"committer"`
 }
 
