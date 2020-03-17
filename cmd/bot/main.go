@@ -42,7 +42,7 @@ func main() {
 		c.PublishChannelMessage(*m)
 	})
 	go rpcServer.StartGRPC()
-	err = connection.ConnectAndWait()
+	err = connection.ConnectAndWaitWithRetry(5)
 	if err != nil {
 		log.Fatal(err)
 	}

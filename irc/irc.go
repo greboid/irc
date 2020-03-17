@@ -3,6 +3,7 @@ package irc
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -111,8 +112,10 @@ func (irc *Connection) Init() {
 	irc.quitting = make(chan bool, 1)
 	irc.signals = make(chan os.Signal, 1)
 	irc.Finished = make(chan bool, 1)
-	irc.saslFinished = make(chan bool, 1)
+	irc.saslFinishedChan = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	irc.outboundHandlers = make([]func(*Connection, string), 0)
+	irc.rawHandlers = make([]func(*Connection, RawMessage), 0)
 
 	irc.initialised = true
 }
@@ -165,4 +168,36 @@ func (irc *Connection) ConnectAndWait() error {
 	}
 	irc.Wait()
 	return nil
+}
+
+func (irc *Connection) ConnectAndWaitWithRetry(maxRetries int) error {
+	sigWait := make(chan os.Signal, 1)
+	signal.Notify(sigWait, os.Interrupt)
+	signal.Notify(sigWait, syscall.SIGTERM)
+	retryDelay := 0
+	retryCount := -1
+	for {
+		retryCount++
+		err := irc.ConnectAndWait()
+		if retryCount > maxRetries {
+			return errors.New("maximum retries reached")
+		}
+		irc.Init()
+		retryDelay = retryCount*5 + retryDelay
+		if retryDelay > 300 {
+			retryDelay = 300
+		}
+		if err != nil {
+			log.Printf("Error connecting, retrying in %d", retryDelay)
+		} else {
+			return nil
+		}
+		sleep := time.NewTimer(time.Duration(retryDelay) * time.Second)
+		select {
+		case <-sleep.C:
+		//NOOP
+		case <-sigWait:
+			break
+		}
+	}
 }
