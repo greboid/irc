@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/rpc"
 	"github.com/kouhin/envflag"
 	"google.golang.org/grpc"
@@ -28,7 +27,7 @@ func main() {
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
-	db, err := database.New(*DBPath)
+	db, err := New(*DBPath)
 	if err != nil {
 		log.Panicf("Unable to load config: %s", err.Error())
 	}

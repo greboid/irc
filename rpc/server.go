@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/irc"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -18,7 +17,7 @@ import (
 type GrpcServer struct {
 	Conn    *irc.Connection
 	RPCPort int
-	Plugins []database.Plugin
+	Plugins []Plugin
 }
 
 func (s *GrpcServer) StartGRPC() {
