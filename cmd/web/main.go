@@ -33,7 +33,7 @@ func main() {
 		log.Panicf("Unable to load config: %s", err.Error())
 	}
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", RPCHost, RPCPort), grpc.WithTransportCredentials(creds))
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *RPCHost, *RPCPort), grpc.WithTransportCredentials(creds))
 	defer func() { _ = conn.Close() }()
 	client := rpc.NewIRCPluginClient(conn)
 	_, err = client.Ping(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.Empty{})
