@@ -113,18 +113,18 @@ func (g *github) handleCommit(data Githubhook) {
 	if data.Refspec == "" {
 		return
 	}
-	go g.sendMessage(fmt.Sprintf("%s %s %d %s %s",
+	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits to %s - %s",
 		data.Repository.FullName,
 		data.Pusher.Name,
 		len(data.Commits),
 		data.Refspec,
 		data.CompareLink))
 	for _, commit := range data.Commits {
-		go g.sendMessage(fmt.Sprintf("%s %s %s %s %s",
+		g.sendMessage(fmt.Sprintf("[%s] %s committed %s to %s - %s",
 			data.Repository.FullName,
-			data.Refspec,
-			commit.ID,
 			commit.Committer.User,
+			commit.ID[len(commit.ID)-6:],
+			data.Refspec,
 			commit.Message))
 	}
 }
