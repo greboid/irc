@@ -14,17 +14,19 @@ import (
 	"log"
 )
 
-func main() {
-	var (
-		RPCHost  = flag.String("rpc-host", "localhost", "gRPC server to connect to")
-		RPCPort  = flag.Int("rpc-port", 8001, "gRPC server port")
-		RPCToken = flag.String("rpc-token", "", "gRPC authentication token")
-		Channel  = flag.String("channel", "", "Channel to send messages to")
+var (
+	RPCHost  = flag.String("rpc-host", "localhost", "gRPC server to connect to")
+	RPCPort  = flag.Int("rpc-port", 8001, "gRPC server port")
+	RPCToken = flag.String("rpc-token", "", "gRPC authentication token")
+	Channel  = flag.String("channel", "", "Channel to send messages to")
 
-		WebPort  = flag.Int("web-port", 8000, "Port for the web server to listen")
-		DBPath   = flag.String("db-path", "/data/db", "Path to user/plugin database")
-		AdminKey = flag.String("admin-key", "", "Admin key for API")
-	)
+	WebPort  = flag.Int("web-port", 8000, "Port for the web server to listen")
+	DBPath   = flag.String("db-path", "/data/db", "Path to user/plugin database")
+	AdminKey = flag.String("admin-key", "", "Admin key for API")
+)
+
+func main() {
+
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
