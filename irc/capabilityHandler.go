@@ -123,7 +123,7 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 	h.mutex.Unlock()
 	if countAcked(h.List) == len(h.wanted) {
 		h.finished = true
-		if _, ok := h.List["sasl"]; ok {
+		if _, ok := h.List["sasl"]; ok && !c.saslFinished {
 			log.Print("Waiting for SASL")
 			h.waitonSasl(c)
 		}
@@ -133,7 +133,7 @@ func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
 
 func (h *capabilityHandler) waitonSasl(c *Connection) {
 	select {
-	case <-c.saslFinished:
+	case <-c.saslFinishedChan:
 		return
 	case <-time.After(5 * time.Second):
 		return

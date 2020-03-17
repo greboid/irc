@@ -49,7 +49,8 @@ func (h *SaslHandler) handleCapAdd(c *Connection, cap *CapabilityStruct) {
 	}
 	if !h.checkSASLSupported(cap) {
 		log.Printf("SASL Finished")
-		c.saslFinished <- true
+		c.saslFinishedChan <- true
+		c.saslFinished = true
 		return
 	}
 	h.readyToAuth = true
@@ -79,12 +80,12 @@ func (h *SaslHandler) handleNickLocked(*Connection, *Message) {}
 
 func (h *SaslHandler) handleAuthSuccess(c *Connection, _ *Message) {
 	log.Print("SASL Auth success")
-	c.saslFinished <- true
+	c.saslFinishedChan <- true
 }
 
 func (h *SaslHandler) handleAuthFail(c *Connection, _ *Message) {
 	log.Print("SASL Auth failed")
-	c.saslFinished <- true
+	c.saslFinishedChan <- true
 }
 
 func (h *SaslHandler) handleMessageTooLong(*Connection, *Message) {

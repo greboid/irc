@@ -40,7 +40,8 @@ type Connection struct {
 	ClientConfig     ClientConfig
 	socket           net.Conn
 	lastMessage      time.Time
-	saslFinished     chan bool
+	saslFinishedChan chan bool
+	saslFinished	 bool
 	quitting         chan bool
 	Finished         chan bool
 	writeChan        chan string
