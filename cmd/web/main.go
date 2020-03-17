@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/greboid/irc/database"
 	"github.com/greboid/irc/rpc"
-	"github.com/greboid/irc/web"
 	"github.com/kouhin/envflag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -41,5 +40,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error with connection: %s", err.Error())
 	}
-	web.NewWeb(*WebPort, *Channel, *AdminKey, client, db).StartWeb()
+	NewWeb(*WebPort, *Channel, *AdminKey, client, db).StartWeb()
 }
