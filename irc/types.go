@@ -41,7 +41,7 @@ type Connection struct {
 	socket           net.Conn
 	lastMessage      time.Time
 	saslFinishedChan chan bool
-	saslFinished	 bool
+	saslFinished     bool
 	quitting         chan bool
 	Finished         chan bool
 	writeChan        chan string
