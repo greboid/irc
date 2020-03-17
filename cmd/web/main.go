@@ -26,7 +26,6 @@ var (
 )
 
 func main() {
-
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
