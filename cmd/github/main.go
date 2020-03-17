@@ -110,6 +110,9 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 }
 
 func (g *github) handleCommit(data Githubhook) {
+	if data.Refspec == "" {
+		return
+	}
 	go g.sendMessage(fmt.Sprintf("%s %s %d %s %s",
 		data.Repository.FullName,
 		data.Pusher.Name,
