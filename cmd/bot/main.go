@@ -6,6 +6,7 @@ import (
 	"github.com/greboid/irc/rpc"
 	"github.com/kouhin/envflag"
 	"log"
+	"time"
 )
 
 //go:generate protoc -I ../../rpc plugin.proto --go_out=plugins=grpc:../../rpc
@@ -22,6 +23,9 @@ var (
 	SASLPass      = flag.String("sasl-pass", "", "SASL password")
 	RPCPort       = flag.Int("rpc-port", 8001, "gRPC server port")
 	PluginsString = flag.String("plugins", "", "Comma separated list of plugins, name=token")
+	FloodProtection = flag.Bool("flood-protection", true, "Enable flood protection?")
+	FloodCapacity = flag.Int("flood-capacity", 1536, "Number of bytes to be able to send before limiting")
+	FloodRate =  flag.Duration("flood-rate", 3 * time.Second, "Recovery time for the total capacity")
 )
 
 func main() {
@@ -32,7 +36,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
-	connection := irc.NewIRC(*Server, *Password, *Nickname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug)
+	connection := irc.NewIRC(*Server, *Password, *Nickname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
+		*FloodProtection, *FloodRate, *FloodCapacity)
 	rpcServer := rpc.GrpcServer{Conn: connection, RPCPort: *RPCPort, Plugins: Plugins}
 	log.Print("Adding callbacks")
 	connection.AddInboundHandler("001", func(c *irc.Connection, m *irc.Message) {

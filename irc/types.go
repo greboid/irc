@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"io"
 	"net"
 	"os"
 	"time"
@@ -54,6 +55,10 @@ type Connection struct {
 	registered       bool
 	listeners        eventListeners
 	saslStarted      bool
+	floodProtection  bool
+	floodCapacity    int
+	floodRate        time.Duration
+	limitedWriter    io.Writer
 }
 
 type RawMessage struct {

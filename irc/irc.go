@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/ChimeraCoder/tokenbucket"
+	"github.com/juju/ratelimit"
 	"log"
 	"net"
 	"os"
@@ -15,7 +15,8 @@ import (
 	"time"
 )
 
-func NewIRC(server string, password string, nickname string, useTLS bool, useSasl bool, saslUser, saslPass string, debug bool) *Connection {
+func NewIRC(server string, password string, nickname string, useTLS bool, useSasl bool, saslUser, saslPass string,
+	debug bool, floodEnabled bool, floodRate time.Duration, floodCapacity int) *Connection {
 	log.Print("Creating new IRC")
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -31,6 +32,9 @@ func NewIRC(server string, password string, nickname string, useTLS bool, useSas
 		SASLUser:   saslUser,
 		SASLPass:   saslPass,
 		Debug:      debug,
+		floodProtection: floodEnabled,
+		floodRate: floodRate,
+		floodCapacity: floodCapacity,
 	}
 	connection.Init()
 	return connection
@@ -52,9 +56,7 @@ func (irc *Connection) readLoop() {
 }
 
 func (irc *Connection) writeLoop() {
-	bucket := tokenbucket.NewBucket(1*time.Second, 5)
 	for {
-		<-bucket.SpendToken(1)
 		select {
 		case b, ok := <-irc.writeChan:
 			if !ok || b == "" || irc.socket == nil {
@@ -62,7 +64,7 @@ func (irc *Connection) writeLoop() {
 			}
 			go irc.runRawHandlers(RawMessage{message: b, out: true})
 			go irc.runOutboundHandlers(b)
-			_, err := irc.socket.Write([]byte(b))
+			_, err := irc.limitedWriter.Write([]byte(b))
 			if err != nil {
 				irc.errorChannel <- err
 				break
@@ -136,8 +138,10 @@ func (irc *Connection) Connect() error {
 	if irc.ClientConfig.UseTLS {
 		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
 		irc.socket, err = tls.DialWithDialer(dialer, "tcp", irc.ClientConfig.Server, nil)
+		irc.limitedWriter = ratelimit.Writer(irc.socket, ratelimit.NewBucket(1*time.Second, 5))
 	} else {
 		irc.socket, err = net.DialTimeout("tcp", irc.ClientConfig.Server, irc.ConnConfig.Timeout)
+		irc.limitedWriter = ratelimit.Writer(irc.socket, ratelimit.NewBucket(time.Duration(irc.floodRate*time.Second), int64(irc.floodCapacity)))
 	}
 	if err != nil {
 		return err
