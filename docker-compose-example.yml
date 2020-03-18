@@ -12,6 +12,7 @@ services:
       TLS: "true"
       NICK: "ExampleBot"
       PLUGINS: "github=vz5Czm7s"
+    restart: always
   github:
     image: greboid/irc-git
     networks:
@@ -20,6 +21,7 @@ services:
       RPC_HOST: "bot"
       RPC_TOKEN: "vz5Czm7s"
       CHANNEL: "#test"
+    restart: always
 networks:
   rpc:
 volumes:
