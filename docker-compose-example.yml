@@ -1,27 +1,26 @@
 version: "3.7"
 services:
   bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.bot
+    image: greboid/irc
     volumes:
       - data:/data
+    networks:
+      - rpc
     environment:
       CHANNEL: "#test"
       SERVER: "irc.example.tld:6697"
       TLS: "true"
       NICK: "ExampleBot"
-      WEB_PORT: "8080"
-      PLUGINS: "test=TESTTOKEN"
-  testplugin:
-    build:
-      context: .
-      dockerfile: Dockerfile.testplugin
+      PLUGINS: "github=vz5Czm7s"
+  github:
+    image: greboid/irc-git
+    networks:
+      - rpc
     environment:
       RPC_HOST: "bot"
-      RPC_TOKEN: "TESTTOKEN"
+      RPC_TOKEN: "vz5Czm7s"
       CHANNEL: "#test"
-    links:
-      - bot
+networks:
+  rpc:
 volumes:
   data:
