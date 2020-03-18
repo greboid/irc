@@ -107,7 +107,6 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		if err == nil {
 			go g.handleCommit(data)
 		}
-		go g.handleCommit(data)
 	}
 }
 
