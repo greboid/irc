@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/ChimeraCoder/tokenbucket"
 	"log"
 	"net"
 	"os"
@@ -51,13 +52,10 @@ func (irc *Connection) readLoop() {
 }
 
 func (irc *Connection) writeLoop() {
-	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
+	bucket := tokenbucket.NewBucket(1*time.Second, 5)
 	for {
+		<-bucket.SpendToken(1)
 		select {
-		case <-keepaliveTicker.C:
-			if time.Since(irc.lastMessage) >= irc.ConnConfig.KeepAlive {
-				irc.SendRawf("PING %d", time.Now().UnixNano())
-			}
 		case b, ok := <-irc.writeChan:
 			if !ok || b == "" || irc.socket == nil {
 				break
@@ -68,6 +66,18 @@ func (irc *Connection) writeLoop() {
 			if err != nil {
 				irc.errorChannel <- err
 				break
+			}
+		}
+	}
+}
+
+func (irc *Connection) miscLoop() {
+	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
+	for {
+		select {
+		case <-keepaliveTicker.C:
+			if time.Since(irc.lastMessage) >= irc.ConnConfig.KeepAlive {
+				irc.SendRawf("PING %d", time.Now().UnixNano())
 			}
 		case err := <-irc.errorChannel:
 			log.Printf("IRC Error occurred: %s", err.Error())
@@ -134,6 +144,7 @@ func (irc *Connection) Connect() error {
 	}
 
 	go irc.readLoop()
+	go irc.miscLoop()
 	go irc.writeLoop()
 	NewErrorHandler().install(irc)
 	NewPingHandler().install(irc)

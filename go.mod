@@ -3,6 +3,7 @@ module github.com/greboid/irc
 go 1.13
 
 require (
+	github.com/ChimeraCoder/tokenbucket v0.0.0-20131201223612-c5a927568de7
 	github.com/golang/protobuf v1.3.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/kouhin/envflag v0.0.0-20150818174321-0e9a86061649
