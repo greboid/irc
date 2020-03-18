@@ -21,6 +21,7 @@ services:
       RPC_HOST: "bot"
       RPC_TOKEN: "vz5Czm7s"
       CHANNEL: "#test"
+      GITHUB_SECRET: "SguL7VGs"
     restart: always
 networks:
   rpc:
