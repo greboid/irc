@@ -137,7 +137,7 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 
 func (g *github) handlePROpen(data prhook) {
 	g.sendMessage(fmt.Sprintf("[%s] %s submitted PR: %s -  %s",
-		data.PullRequest.Repository.FullName,
+		data.Repository.FullName,
 		data.PullRequest.User.Login,
 		data.PullRequest.Title,
 		data.PullRequest.Url,
