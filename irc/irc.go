@@ -27,14 +27,14 @@ func NewIRC(server string, password string, nickname string, useTLS bool, useSas
 			Realname: nickname,
 			UseTLS:   useTLS,
 		},
-		ConnConfig: DefaultConnectionConfig,
-		SASLAuth:   useSasl,
-		SASLUser:   saslUser,
-		SASLPass:   saslPass,
-		Debug:      debug,
+		ConnConfig:      DefaultConnectionConfig,
+		SASLAuth:        useSasl,
+		SASLUser:        saslUser,
+		SASLPass:        saslPass,
+		Debug:           debug,
 		floodProtection: floodEnabled,
-		floodRate: floodRate,
-		floodCapacity: floodCapacity,
+		floodRate:       floodRate,
+		floodCapacity:   floodCapacity,
 	}
 	connection.Init()
 	return connection

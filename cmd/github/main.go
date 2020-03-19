@@ -105,9 +105,31 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		data := pushhook{}
 		err = json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			go g.handleCommit(data)
+			if data.Created {
+				go g.handleCreate(data)
+			} else if data.Deleted {
+				go g.handleDelete(data)
+			} else {
+				go g.handleCommit(data)
+			}
 		}
 	}
+}
+
+func (g *github) handleDelete(data pushhook) {
+	g.sendMessage(fmt.Sprintf("[%s] %s deleted %s",
+		data.Repository.FullName,
+		data.Pusher.Name,
+		data.Refspec,
+	))
+}
+
+func (g *github) handleCreate(data pushhook) {
+	g.sendMessage(fmt.Sprintf("[%s] %s created %s",
+		data.Repository.FullName,
+		data.Pusher.Name,
+		data.Refspec,
+	))
 }
 
 func (g *github) handleCommit(data pushhook) {
@@ -122,7 +144,7 @@ func (g *github) handleCommit(data pushhook) {
 			data.Repository.FullName,
 			commit.Committer.User,
 			commit.ID[len(commit.ID)-6:],
-			data.Refspec,
+			strings.TrimPrefix(data.Refspec, "refs/heads/"),
 			commit.Message))
 	}
 }
