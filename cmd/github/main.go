@@ -135,11 +135,10 @@ func (g *github) handleCreate(data pushhook) {
 }
 
 func (g *github) handleCommit(data pushhook) {
-	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits to %s - %s",
+	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits - %s",
 		data.Repository.FullName,
 		data.Pusher.Name,
 		len(data.Commits),
-		data.Refspec,
 		data.CompareLink))
 	for _, commit := range data.Commits {
 		g.sendMessage(fmt.Sprintf("[%s] %s committed %s to %s - %s",
