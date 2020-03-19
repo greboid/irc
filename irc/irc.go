@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-func NewIRC(server string, password string, nickname string, useTLS bool, useSasl bool, saslUser, saslPass string,
-	debug bool, floodEnabled bool, floodRate time.Duration, floodCapacity int) *Connection {
+func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
+	debug, floodEnabled bool, floodRate time.Duration, floodCapacity int) *Connection {
 	log.Print("Creating new IRC")
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -24,7 +24,7 @@ func NewIRC(server string, password string, nickname string, useTLS bool, useSas
 			Password: password,
 			Nick:     nickname,
 			User:     nickname,
-			Realname: nickname,
+			Realname: realname,
 			UseTLS:   useTLS,
 		},
 		ConnConfig:      DefaultConnectionConfig,
