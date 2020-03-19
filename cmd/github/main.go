@@ -118,7 +118,24 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 				go g.handleCommit(data)
 			}
 		}
+	case "pull_request":
+		data := prhook{}
+		err = json.Unmarshal(bodyBytes, &data)
+		if err == nil {
+			if data.Action == "opened" {
+			go g.handlePROpen(data)
+		}
+		}
 	}
+}
+
+func (g *github) handlePROpen(data prhook) {
+	g.sendMessage(fmt.Sprintf("[%s] %s submitted PR: %s -  %s",
+		data.PullRequest.Repository.FullName,
+		data.PullRequest.User.Login,
+		data.PullRequest.Title,
+		data.PullRequest.Url,
+	))
 }
 
 func (g *github) handleDelete(data pushhook) {
