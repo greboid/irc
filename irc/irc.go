@@ -138,10 +138,13 @@ func (irc *Connection) Connect() error {
 	if irc.ClientConfig.UseTLS {
 		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
 		irc.socket, err = tls.DialWithDialer(dialer, "tcp", irc.ClientConfig.Server, nil)
-		irc.limitedWriter = ratelimit.Writer(irc.socket, ratelimit.NewBucket(1*time.Second, 5))
 	} else {
 		irc.socket, err = net.DialTimeout("tcp", irc.ClientConfig.Server, irc.ConnConfig.Timeout)
+	}
+	if irc.floodProtection {
 		irc.limitedWriter = ratelimit.Writer(irc.socket, ratelimit.NewBucket(time.Duration(irc.floodRate*time.Second), int64(irc.floodCapacity)))
+	} else {
+		irc.limitedWriter = irc.socket
 	}
 	if err != nil {
 		return err
