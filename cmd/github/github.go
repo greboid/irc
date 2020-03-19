@@ -52,15 +52,15 @@ type Author struct {
 type prhook struct {
 	Action      string      `json:"action"`
 	PullRequest PullRequest `json:"pull_request"`
+	Repository Repository `json:"repository"`
 }
 
 type PullRequest struct {
-	Url        string     `json:"string"`
+	Url        string     `json:"url"`
 	State      string     `json:"state"`
 	Title      string     `json:"title"`
 	Body       string     `json:"body"`
 	User       User       `json:"user"`
-	Repository Repository `json:"repository"`
 }
 
 type User struct {
