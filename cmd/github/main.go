@@ -127,12 +127,36 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		if err == nil {
 			if data.Action == "opened" {
 				go g.handlePROpen(data)
+			} else if data.Action == "closed" {
+				if data.PullRequest.Merged == "" {
+					go g.handlePRClose(data)
+				} else {
+					go g.handlePRMerged(data)
+				}
 			}
 		} else {
 			log.Printf("Error handling PR: %s", err.Error())
 			_, _ = writer.Write([]byte("Error."))
 		}
 	}
+}
+
+func (g *github) handlePRClose(data prhook) {
+	g.sendMessage(fmt.Sprintf("[%s] %s closed PR: %s -  %s",
+		data.Repository.FullName,
+		data.PullRequest.User.Login,
+		data.PullRequest.Title,
+		data.PullRequest.HtmlURL,
+	))
+}
+
+func (g *github) handlePRMerged(data prhook) {
+	g.sendMessage(fmt.Sprintf("[%s] %s merged PR: %s -  %s",
+		data.Repository.FullName,
+		data.PullRequest.User.Login,
+		data.PullRequest.Title,
+		data.PullRequest.HtmlURL,
+	))
 }
 
 func (g *github) handlePROpen(data prhook) {

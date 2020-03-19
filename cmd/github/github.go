@@ -62,6 +62,7 @@ type PullRequest struct {
 	Title      string     `json:"title"`
 	Body       string     `json:"body"`
 	User       User       `json:"user"`
+	Merged     string      `json:"merged_at"`
 }
 
 type User struct {
