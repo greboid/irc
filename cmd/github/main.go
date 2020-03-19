@@ -125,10 +125,12 @@ func (g *github) handleDelete(data pushhook) {
 }
 
 func (g *github) handleCreate(data pushhook) {
-	g.sendMessage(fmt.Sprintf("[%s] %s created %s",
+	g.sendMessage(fmt.Sprintf("[%s] %s created %s from %s - %s",
 		data.Repository.FullName,
 		data.Pusher.Name,
 		data.Refspec,
+		data.Baserefspec,
+		data.CompareLink,
 	))
 }
 

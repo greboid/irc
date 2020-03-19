@@ -24,6 +24,7 @@ type pushhook struct {
 	Created     bool       `json:"created"`
 	CompareLink string     `json:"compare"`
 	Commits     []Commit   `json:"commits"`
+	Baserefspec string     `json:"base_ref"`
 }
 
 type Repository struct {
