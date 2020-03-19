@@ -117,14 +117,20 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 			} else {
 				go g.handleCommit(data)
 			}
+		} else {
+			log.Printf("Error handling PR: %s", err.Error())
+			_, _ = writer.Write([]byte("Error."))
 		}
 	case "pull_request":
 		data := prhook{}
 		err = json.Unmarshal(bodyBytes, &data)
 		if err == nil {
 			if data.Action == "opened" {
-			go g.handlePROpen(data)
-		}
+				go g.handlePROpen(data)
+			}
+		} else {
+			log.Printf("Error handling PR: %s", err.Error())
+			_, _ = writer.Write([]byte("Error."))
 		}
 	}
 }

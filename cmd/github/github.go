@@ -15,7 +15,6 @@ func CheckGithubSecret(bodyBytes []byte, headerSecret string, githubSecret strin
 	return len(expected) == len(headerSecret) && subtle.ConstantTimeCompare([]byte(expected), []byte(headerSecret)) == 1
 }
 
-
 //Push events
 type pushhook struct {
 	Refspec     string     `json:"ref"`
@@ -51,16 +50,16 @@ type Author struct {
 
 //Pull Request events
 type prhook struct {
-	Action string `json:"action"`
+	Action      string      `json:"action"`
 	PullRequest PullRequest `json:"pull_request"`
 }
 
 type PullRequest struct {
-	Url string `json:"string"`
-	State string `json:"state"`
-	Title string `json:"title"`
-	Body string `json:"body"`
-	User User `json:"user"`
+	Url        string     `json:"string"`
+	State      string     `json:"state"`
+	Title      string     `json:"title"`
+	Body       string     `json:"body"`
+	User       User       `json:"user"`
 	Repository Repository `json:"repository"`
 }
 
