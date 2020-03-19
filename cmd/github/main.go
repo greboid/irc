@@ -178,13 +178,22 @@ func (g *github) handleDelete(data pushhook) {
 }
 
 func (g *github) handleCreate(data pushhook) {
-	g.sendMessage(fmt.Sprintf("[%s] %s created %s from %s - %s",
-		data.Repository.FullName,
-		data.Pusher.Name,
-		data.Refspec,
-		data.Baserefspec,
-		data.CompareLink,
-	))
+	if data.Baserefspec == "" {
+		g.sendMessage(fmt.Sprintf("[%s] %s created %s - %s",
+			data.Repository.FullName,
+			data.Pusher.Name,
+			data.Refspec,
+			data.CompareLink,
+		))
+	} else {
+		g.sendMessage(fmt.Sprintf("[%s] %s created %s from %s - %s",
+			data.Repository.FullName,
+			data.Pusher.Name,
+			data.Refspec,
+			data.Baserefspec,
+			data.CompareLink,
+		))
+	}
 }
 
 func (g *github) handleCommit(data pushhook) {
