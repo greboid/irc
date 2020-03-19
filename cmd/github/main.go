@@ -105,9 +105,9 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		data := pushhook{}
 		err = json.Unmarshal(bodyBytes, &data)
 		if strings.HasPrefix(data.Refspec, "refs/heads/") {
-			data.Refspec = fmt.Sprintf("branch:%s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
+			data.Refspec = fmt.Sprintf("branch %s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
 		} else if strings.HasPrefix(data.Refspec, "refs/tags/") {
-			data.Refspec = fmt.Sprintf("tag:%s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
+			data.Refspec = fmt.Sprintf("tag %s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
 		}
 		if err == nil {
 			if data.Created {
@@ -140,17 +140,17 @@ func (g *github) handleCreate(data pushhook) {
 }
 
 func (g *github) handleCommit(data pushhook) {
-	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits - %s",
+	g.sendMessage(fmt.Sprintf("[%s] %s pushed %d commits to %s - %s",
 		data.Repository.FullName,
 		data.Pusher.Name,
 		len(data.Commits),
+		data.Refspec,
 		data.CompareLink))
 	for _, commit := range data.Commits {
-		g.sendMessage(fmt.Sprintf("[%s] %s committed %s to %s - %s",
+		g.sendMessage(fmt.Sprintf("[%s] %s committed %s - %s",
 			data.Repository.FullName,
 			commit.Committer.User,
 			commit.ID[len(commit.ID)-6:],
-			strings.TrimPrefix(data.Refspec, "refs/heads/"),
 			commit.Message))
 	}
 }
