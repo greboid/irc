@@ -52,17 +52,18 @@ type Author struct {
 type prhook struct {
 	Action      string      `json:"action"`
 	PullRequest PullRequest `json:"pull_request"`
-	Repository Repository `json:"repository"`
+	Repository  Repository  `json:"repository"`
 }
 
 type PullRequest struct {
-	HtmlURL    string     `json:"html_url"`
-	Url        string     `json:"url"`
-	State      string     `json:"state"`
-	Title      string     `json:"title"`
-	Body       string     `json:"body"`
-	User       User       `json:"user"`
-	Merged     string      `json:"merged_at"`
+	HtmlURL  string `json:"html_url"`
+	Url      string `json:"url"`
+	State    string `json:"state"`
+	Title    string `json:"title"`
+	Body     string `json:"body"`
+	User     User   `json:"user"`
+	Merged   string `json:"merged_at"`
+	MergedBy User   `json:"merged_by"`
 }
 
 type User struct {

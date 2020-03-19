@@ -151,8 +151,9 @@ func (g *github) handlePRClose(data prhook) {
 }
 
 func (g *github) handlePRMerged(data prhook) {
-	g.sendMessage(fmt.Sprintf("[%s] %s merged PR: %s -  %s",
+	g.sendMessage(fmt.Sprintf("[%s] %s merged PR from %s: %s -  %s",
 		data.Repository.FullName,
+		data.PullRequest.MergedBy.Login,
 		data.PullRequest.User.Login,
 		data.PullRequest.Title,
 		data.PullRequest.HtmlURL,
