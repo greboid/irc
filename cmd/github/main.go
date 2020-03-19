@@ -140,7 +140,7 @@ func (g *github) handlePROpen(data prhook) {
 		data.Repository.FullName,
 		data.PullRequest.User.Login,
 		data.PullRequest.Title,
-		data.PullRequest.Url,
+		data.PullRequest.HtmlURL,
 	))
 }
 

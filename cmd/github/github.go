@@ -56,6 +56,7 @@ type prhook struct {
 }
 
 type PullRequest struct {
+	HtmlURL    string     `json:"html_url"`
 	Url        string     `json:"url"`
 	State      string     `json:"state"`
 	Title      string     `json:"title"`
