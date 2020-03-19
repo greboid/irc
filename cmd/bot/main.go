@@ -16,6 +16,7 @@ var (
 	Password        = flag.String("password", "", "The server password, if required")
 	TLS             = flag.Bool("tls", true, "Connect with TLS?")
 	Nickname        = flag.String("nick", "", "Nickname to use")
+	Realname        = flag.String("realname", "", "'Real name' to use")
 	Channel         = flag.String("channel", "", "Channel to join on connect")
 	Debug           = flag.Bool("debug", false, "Enable IRC debug output")
 	SASLAuth        = flag.Bool("sasl-auth", false, "Authenticate via SASL?")
@@ -36,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
-	connection := irc.NewIRC(*Server, *Password, *Nickname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
+	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
 		*FloodProtection, *FloodRate, *FloodCapacity)
 	rpcServer := rpc.GrpcServer{Conn: connection, RPCPort: *RPCPort, Plugins: Plugins}
 	log.Print("Adding callbacks")
