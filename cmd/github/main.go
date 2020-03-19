@@ -104,6 +104,11 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 	case "push":
 		data := pushhook{}
 		err = json.Unmarshal(bodyBytes, &data)
+		if strings.HasPrefix(data.Refspec, "refs/heads/") {
+			data.Refspec = fmt.Sprintf("branch:%s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
+		} else if strings.HasPrefix(data.Refspec, "refs/tags/") {
+			data.Refspec = fmt.Sprintf("tag:%s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
+		}
 		if err == nil {
 			if data.Created {
 				go g.handleCreate(data)
