@@ -214,7 +214,7 @@ func (g *github) handleCommit(data pushhook) {
 	for _, commit := range data.Commits {
 		g.sendMessage(fmt.Sprintf("[%s] %s committed %s - %s",
 			data.Repository.FullName,
-			commit.Committer.User,
+			commit.Author.User,
 			commit.ID[len(commit.ID)-6:],
 			commit.Message))
 	}
