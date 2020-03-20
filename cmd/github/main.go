@@ -105,38 +105,31 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		data := pushhook{}
 		err = json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			if strings.HasPrefix(data.Refspec, "refs/heads/") {
-				data.Refspec = fmt.Sprintf("branch %s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
-			} else if strings.HasPrefix(data.Refspec, "refs/tags/") {
-				data.Refspec = fmt.Sprintf("tag %s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
-			}
-			if data.Created {
-				go g.handleCreate(data)
-			} else if data.Deleted {
-				go g.handleDelete(data)
-			} else {
-				go g.handleCommit(data)
-			}
+			go g.handlePushEvent(data)
 		} else {
-			log.Printf("Error handling PR: %s", err.Error())
+			log.Printf("Error handling push: %s", err.Error())
 			_, _ = writer.Write([]byte("Error."))
 		}
 	case "pull_request":
 		data := prhook{}
 		err = json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			if data.Action == "opened" {
-				go g.handlePROpen(data)
-			} else if data.Action == "closed" {
-				if data.PullRequest.Merged == "" {
-					go g.handlePRClose(data)
-				} else {
-					go g.handlePRMerged(data)
-				}
-			}
+			go g.handlePREvent(data)
 		} else {
 			log.Printf("Error handling PR: %s", err.Error())
 			_, _ = writer.Write([]byte("Error."))
+		}
+	}
+}
+
+func (g *github) handlePREvent(data prhook) {
+	if data.Action == "opened" {
+		g.handlePROpen(data)
+	} else if data.Action == "closed" {
+		if data.PullRequest.Merged == "" {
+			g.handlePRClose(data)
+		} else {
+			g.handlePRMerged(data)
 		}
 	}
 }
@@ -167,6 +160,21 @@ func (g *github) handlePROpen(data prhook) {
 		data.PullRequest.Title,
 		data.PullRequest.HtmlURL,
 	))
+}
+
+func (g *github) handlePushEvent(data pushhook) {
+	if strings.HasPrefix(data.Refspec, "refs/heads/") {
+		data.Refspec = fmt.Sprintf("branch %s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
+	} else if strings.HasPrefix(data.Refspec, "refs/tags/") {
+		data.Refspec = fmt.Sprintf("tag %s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
+	}
+	if data.Created {
+		g.handleCreate(data)
+	} else if data.Deleted {
+		g.handleDelete(data)
+	} else {
+		g.handleCommit(data)
+	}
 }
 
 func (g *github) handleDelete(data pushhook) {
@@ -219,6 +227,5 @@ func (g *github) sendMessage(message string) {
 	})
 	if err != nil {
 		log.Printf("Error sending to channel: %s", err.Error())
-		return
 	}
 }
