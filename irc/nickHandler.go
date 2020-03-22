@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -26,11 +27,16 @@ func (h *nickHandler) install(c *Connection) {
 	c.AddInboundHandler("433", h.nicknameInUse)
 	c.AddInboundHandler("436", h.nicknameCollision)
 	c.AddInboundHandler("NICK", h.nicknameChanged)
+
 }
 
 func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
-	log.Printf("Nickname changed: %s", m.Params[0])
-	h.current = m.Params[0]
+	sourceNick := strings.SplitN(m.Source, "!", 2)[0]
+	destNick := m.Params[0]
+	if strings.HasPrefix(sourceNick, h.current) {
+		log.Printf("Nickname changed: %s", destNick)
+		h.current = destNick
+	}}
 }
 
 func (h *nickHandler) nicknameCollision(c *Connection, m *Message) {
