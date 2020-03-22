@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/juju/ratelimit"
 	"log"
 	"net"
 	"os"
@@ -16,7 +15,7 @@ import (
 )
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	debug, floodEnabled bool, floodRate time.Duration, floodCapacity int) *Connection {
+	debug bool, floodProfile string) *Connection {
 	log.Print("Creating new IRC")
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -27,14 +26,12 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 			Realname: realname,
 			UseTLS:   useTLS,
 		},
-		ConnConfig:      DefaultConnectionConfig,
-		SASLAuth:        useSasl,
-		SASLUser:        saslUser,
-		SASLPass:        saslPass,
-		Debug:           debug,
-		floodProtection: floodEnabled,
-		floodRate:       floodRate,
-		floodCapacity:   floodCapacity,
+		ConnConfig:   DefaultConnectionConfig,
+		SASLAuth:     useSasl,
+		SASLUser:     saslUser,
+		SASLPass:     saslPass,
+		Debug:        debug,
+		FloodProfile: floodProfile,
 	}
 	connection.Init()
 	return connection
@@ -141,11 +138,7 @@ func (irc *Connection) Connect() error {
 	} else {
 		irc.socket, err = net.DialTimeout("tcp", irc.ClientConfig.Server, irc.ConnConfig.Timeout)
 	}
-	if irc.floodProtection {
-		irc.limitedWriter = ratelimit.Writer(irc.socket, ratelimit.NewBucket(time.Duration(irc.floodRate*time.Second), int64(irc.floodCapacity)))
-	} else {
-		irc.limitedWriter = irc.socket
-	}
+	irc.limitedWriter = irc.NewRateLimiter(irc.socket, irc.FloodProfile)
 	if err != nil {
 		return err
 	}

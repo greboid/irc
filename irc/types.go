@@ -55,10 +55,8 @@ type Connection struct {
 	registered       bool
 	listeners        eventListeners
 	saslStarted      bool
-	floodProtection  bool
-	floodCapacity    int
-	floodRate        time.Duration
 	limitedWriter    io.Writer
+	FloodProfile     string
 }
 
 type RawMessage struct {
