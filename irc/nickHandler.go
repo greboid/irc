@@ -4,14 +4,18 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
 type nickHandler struct {
-	preferred string
-	current   string
-	letters   []rune
+	preferred         string
+	current           string
+	letters           []rune
+	checkingPreferred bool
 }
 
 func NewNickHandler(preferredNickname string) *nickHandler {
@@ -27,7 +31,7 @@ func (h *nickHandler) install(c *Connection) {
 	c.AddInboundHandler("433", h.nicknameInUse)
 	c.AddInboundHandler("436", h.nicknameCollision)
 	c.AddInboundHandler("NICK", h.nicknameChanged)
-
+	go h.monitorNickname(c)
 }
 
 func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
@@ -36,7 +40,10 @@ func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
 	if strings.HasPrefix(sourceNick, h.current) {
 		log.Printf("Nickname changed: %s", destNick)
 		h.current = destNick
-	}}
+	} else if sourceNick == h.preferred {
+		log.Printf("Regained preferred nickname: %s", destNick)
+		c.SendRawf("NICK %s", h.preferred)
+	}
 }
 
 func (h *nickHandler) nicknameCollision(c *Connection, m *Message) {
@@ -44,8 +51,12 @@ func (h *nickHandler) nicknameCollision(c *Connection, m *Message) {
 }
 
 func (h *nickHandler) nicknameInUse(c *Connection, _ *Message) {
-	log.Printf("Nickname in use %s", h.current)
-	h.updateNickname(c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
+	if !h.checkingPreferred {
+		log.Printf("Nickname in use %s", h.current)
+		h.updateNickname(c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
+	} else {
+		h.checkingPreferred = false
+	}
 }
 
 func (h *nickHandler) erroneusNickame(c *Connection, _ *Message) {
@@ -66,4 +77,22 @@ func (h *nickHandler) randSeq(n int) string {
 		b[i] = h.letters[rand.Intn(len(h.letters))]
 	}
 	return string(b)
+}
+
+func (h *nickHandler) monitorNickname(c *Connection) {
+	ticker := time.NewTicker(60000 * time.Millisecond)
+	sigWait := make(chan os.Signal, 1)
+	signal.Notify(sigWait, os.Interrupt)
+	signal.Notify(sigWait, syscall.SIGTERM)
+	for {
+		select {
+		case <-sigWait:
+			return
+		case <-ticker.C:
+			if h.current != h.preferred {
+				h.checkingPreferred = true
+				c.SendRawf("NICK %s", h.preferred)
+			}
+		}
+	}
 }
