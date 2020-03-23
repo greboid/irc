@@ -24,6 +24,7 @@ type RateLimiter struct {
 	maxCapacity   float64
 	refreshRate   float64
 	refreshAmount float64
+	refreshUnit   int
 }
 
 func (r *RateLimiter) Init(profile string) {
@@ -33,14 +34,15 @@ func (r *RateLimiter) Init(profile string) {
 	case "restrictive":
 		r.refreshRate = 1
 		r.refreshAmount = 0.5
-		r.maxCapacity = 5
+		r.refreshUnit = 128
+		r.maxCapacity = 4
 	}
 	r.capacity = r.maxCapacity
 	go r.refilTimer()
 }
 
 func (r *RateLimiter) refilTimer() {
-	ticker := time.NewTicker(time.Duration(r.refreshRate) * time.Second)
+	ticker := time.NewTicker(time.Duration(r.refreshTimerRate) * time.Second)
 	sigWait := make(chan os.Signal, 1)
 	signal.Notify(sigWait, os.Interrupt)
 	signal.Notify(sigWait, syscall.SIGTERM)
@@ -55,7 +57,7 @@ func (r *RateLimiter) refilTimer() {
 }
 
 func (r *RateLimiter) Write(p []byte) (n int, err error) {
-	needed := math.Min(math.Ceil(float64(len(p))/128), r.maxCapacity)
+	needed := math.Min(math.Ceil(float64(len(p))/r.refreshUnit), r.maxCapacity)
 	for {
 		if needed > r.capacity {
 			time.Sleep(time.Duration(250) * time.Millisecond)
