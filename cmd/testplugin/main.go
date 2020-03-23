@@ -34,19 +34,31 @@ func main() {
 	defer func() { _ = conn.Close() }()
 	client := rpc.NewIRCPluginClient(conn)
 	_, err = client.Ping(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.Empty{})
-	if err != nil {
-		log.Fatalf("Error getting messages: %s", err.Error())
+	messages := []string{"Test message."}
+	for message := range messages {
+		_ = sendMessage(messages[message], client)
 	}
-	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
+	_ = getMessages(*Channel, client)
+}
+
+func sendMessage(message string, client rpc.IRCPluginClient) error {
+	_, err := client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
 		Channel: *Channel,
-		Message: "RPC",
+		Message: message,
 	})
 	if err != nil {
 		log.Printf("Error sending: %s", err.Error())
 	} else {
-		log.Print("Sent message, exiting.")
+		log.Print("Sent message.")
 	}
-	handler, err := client.GetMessages(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.Channel{Name: *Channel})
+	return err
+}
+
+func getMessages(channel string, client rpc.IRCPluginClient) error {
+	handler, err := client.GetMessages(
+		rpc.CtxWithToken(context.Background(), "bearer", *RPCToken),
+		&rpc.Channel{Name: channel},
+	)
 	if err != nil {
 		log.Fatalf("Error getting messages: %s", err.Error())
 	}
@@ -60,5 +72,5 @@ func main() {
 		}
 		log.Printf("%s: %s - %s", msg.Channel, msg.Source, msg.Message)
 	}
-
+	return err
 }
