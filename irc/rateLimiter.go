@@ -1,12 +1,9 @@
 package irc
 
 import (
+	"context"
+	"golang.org/x/time/rate"
 	"io"
-	"math"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func (irc *Connection) NewRateLimiter(w io.Writer, floodProfile string) *RateLimiter {
@@ -19,69 +16,27 @@ func (irc *Connection) NewRateLimiter(w io.Writer, floodProfile string) *RateLim
 }
 
 type RateLimiter struct {
-	baseWriter    io.Writer
-	limitedWriter io.Writer
-	capacity      float64
-	maxCapacity   float64
-	refreshRate   float64
-	refreshAmount float64
-	refreshUnit   float64
-	initialRampUp bool
-	initialAmount float64
-	received001   bool
+	baseWriter  io.Writer
+	limiter     *rate.Limiter
+	received001 bool
+	byteToToken int
 }
 
 func (r *RateLimiter) Init(profile string) {
 	switch profile {
 	case "unlimited":
-		r.limitedWriter = r.baseWriter
+		r.limiter = rate.NewLimiter(rate.Inf, 0)
+		r.byteToToken = 1
 	case "restrictive":
-		r.refreshRate = 1
-		r.refreshAmount = 0.5
-		r.refreshUnit = 128
-		r.initialRampUp = true
-		r.initialAmount = 0.3
-		r.maxCapacity = 4
-	}
-	r.capacity = 2
-	go r.refilTimer()
-}
-
-func (r *RateLimiter) refilTimer() {
-	ticker := time.NewTicker(time.Duration(r.refreshRate) * time.Second)
-	sigWait := make(chan os.Signal, 1)
-	signal.Notify(sigWait, os.Interrupt)
-	signal.Notify(sigWait, syscall.SIGTERM)
-	for {
-		select {
-		case <-sigWait:
-			return
-		case <-ticker.C:
-			amount := float64(0)
-			if r.initialRampUp {
-				amount = math.Min(r.maxCapacity, r.capacity+r.initialAmount)
-				if amount == r.maxCapacity {
-					r.initialRampUp = false
-				}
-			} else {
-				amount = math.Max(0, math.Min(r.maxCapacity, r.capacity+r.refreshAmount))
-			}
-			r.capacity = amount
-		}
+		r.limiter = rate.NewLimiter(rate.Limit(0.4), 4)
+		r.byteToToken = 128
 	}
 }
 
 func (r *RateLimiter) Write(p []byte) (n int, err error) {
-	needed := math.Min(math.Ceil(float64(len(p))/r.refreshUnit), r.maxCapacity)
+	needed := len(p) / r.byteToToken
 	if r.received001 {
-		for {
-			if needed > r.capacity {
-				time.Sleep(time.Duration(250) * time.Millisecond)
-			} else {
-				break
-			}
-		}
-		r.capacity -= needed
+		_ = r.limiter.WaitN(context.Background(), needed)
 	}
 	return r.baseWriter.Write(p)
 }
