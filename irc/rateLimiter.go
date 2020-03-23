@@ -14,6 +14,7 @@ func (irc *Connection) NewRateLimiter(w io.Writer, floodProfile string) *RateLim
 		baseWriter: w,
 	}
 	rl.Init(floodProfile)
+	irc.AddInboundHandler("001", rl.handle001)
 	return &rl
 }
 
@@ -25,6 +26,9 @@ type RateLimiter struct {
 	refreshRate   float64
 	refreshAmount float64
 	refreshUnit   float64
+	initialRampUp bool
+	initialAmount float64
+	received001   bool
 }
 
 func (r *RateLimiter) Init(profile string) {
@@ -35,9 +39,11 @@ func (r *RateLimiter) Init(profile string) {
 		r.refreshRate = 1
 		r.refreshAmount = 0.5
 		r.refreshUnit = 128
+		r.initialRampUp = true
+		r.initialAmount = 0.3
 		r.maxCapacity = 4
 	}
-	r.capacity = r.maxCapacity
+	r.capacity = 2
 	go r.refilTimer()
 }
 
@@ -51,21 +57,35 @@ func (r *RateLimiter) refilTimer() {
 		case <-sigWait:
 			return
 		case <-ticker.C:
-			r.capacity = math.Max(0, math.Min(r.maxCapacity, r.capacity+r.refreshAmount))
+			amount := float64(0)
+			if r.initialRampUp {
+				amount = math.Min(r.maxCapacity, r.capacity+r.initialAmount)
+				if amount == r.maxCapacity {
+					r.initialRampUp = false
+				}
+			} else {
+				amount = math.Max(0, math.Min(r.maxCapacity, r.capacity+r.refreshAmount))
+			}
+			r.capacity = amount
 		}
 	}
 }
 
 func (r *RateLimiter) Write(p []byte) (n int, err error) {
 	needed := math.Min(math.Ceil(float64(len(p))/r.refreshUnit), r.maxCapacity)
-	for {
-		if needed > r.capacity {
-			time.Sleep(time.Duration(250) * time.Millisecond)
-			break
-		} else {
-			break
+	if r.received001 {
+		for {
+			if needed > r.capacity {
+				time.Sleep(time.Duration(250) * time.Millisecond)
+			} else {
+				break
+			}
 		}
+		r.capacity -= needed
 	}
-	r.capacity -= needed
 	return r.baseWriter.Write(p)
+}
+
+func (r *RateLimiter) handle001(*Connection, *Message) {
+	r.received001 = true
 }
