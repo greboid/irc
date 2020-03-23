@@ -24,7 +24,7 @@ type RateLimiter struct {
 	maxCapacity   float64
 	refreshRate   float64
 	refreshAmount float64
-	refreshUnit   int
+	refreshUnit   float64
 }
 
 func (r *RateLimiter) Init(profile string) {
@@ -42,7 +42,7 @@ func (r *RateLimiter) Init(profile string) {
 }
 
 func (r *RateLimiter) refilTimer() {
-	ticker := time.NewTicker(time.Duration(r.refreshTimerRate) * time.Second)
+	ticker := time.NewTicker(time.Duration(r.refreshRate) * time.Second)
 	sigWait := make(chan os.Signal, 1)
 	signal.Notify(sigWait, os.Interrupt)
 	signal.Notify(sigWait, syscall.SIGTERM)
