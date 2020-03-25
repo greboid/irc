@@ -126,6 +126,7 @@ func (g *github) handleWebhook(eventType string, bodyBytes []byte) error {
 			return err
 		}
 	}
+	return nil
 }
 
 func (g *github) handlePREvent(data prhook) (messages []string) {
