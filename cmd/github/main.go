@@ -238,7 +238,7 @@ func (g *github) handleCommit(data pushhook) (messages []string) {
 			data.Repository.FullName,
 			commit.Author.User,
 			commit.ID[len(commit.ID)-6:],
-			commit.Message,
+			strings.SplitN(commit.Message, "\n", 2)[0],
 		))
 	}
 	return
