@@ -125,6 +125,24 @@ func (g *github) handleWebhook(eventType string, bodyBytes []byte) error {
 			log.Printf("Error handling PR: %s", err.Error())
 			return err
 		}
+	case "issues":
+		// TODO: Handle
+		return nil
+	case "issue_comment":
+		// TODO: Handle
+		return nil
+	case "check_run":
+		// TODO: Handle
+		return nil
+	case "release":
+		// TODO: Handle
+		return nil
+	case "create":
+		// TODO: Handle
+		return nil
+	case "check_suite":
+		// TODO: Handle
+		return nil
 	}
 	return nil
 }
