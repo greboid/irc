@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"github.com/imdario/mergo"
 	"log"
 	"strings"
 	"sync"
@@ -85,7 +86,7 @@ func (h *capabilityHandler) handleLS(tokenised []string) {
 	} else {
 		h.listing = false
 	}
-	h.List = h.parseCapabilities(tokenised)
+	_ = mergo.Merge(&h.List, h.parseCapabilities(tokenised), mergo.WithOverride)
 }
 
 func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*CapabilityStruct {

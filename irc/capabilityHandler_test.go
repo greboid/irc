@@ -172,6 +172,32 @@ func Test_capabilityHandler_handleLS(t *testing.T) {
 				finished:  true,
 			},
 		},
+		{
+			name: "Existing values",
+			fields: fields{
+				List: map[string]*CapabilityStruct{
+					"account-notify": {name: "account-notify", acked: false, waitingonAck: false, values: ""},
+				},
+				wanted:    nil,
+				listing:   false,
+				requested: false,
+				finished:  false,
+			},
+			args: args{
+				c:         nil,
+				tokenised: []string{"message-tags"},
+			},
+			wanted: fields{
+				List: map[string]*CapabilityStruct{
+					"account-notify": {name: "account-notify", acked: false, waitingonAck: false, values: ""},
+					"message-tags":   {name: "message-tags", acked: false, waitingonAck: false, values: ""},
+				},
+				wanted:    nil,
+				listing:   false,
+				requested: false,
+				finished:  true,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
