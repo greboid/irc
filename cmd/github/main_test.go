@@ -32,7 +32,7 @@ func (m *mockIRCPluginClient) Ping(context.Context, *rpc.Empty, ...grpc.CallOpti
 	return nil, nil
 }
 
-func getTestData(filename string, output interface{})  error {
+func getTestData(filename string, output interface{}) error {
 	data, err := ioutil.ReadFile(fmt.Sprintf("./testdata/%s", filename))
 	if err != nil {
 		return err
@@ -49,37 +49,37 @@ func Test_github_tidyPushRefspecs(t *testing.T) {
 		name   string
 		fields fields
 		args   *pushhook
-		want *pushhook
+		want   *pushhook
 	}{
 		{
 			name:   "refspec: master branch",
 			fields: fields{},
-			args:   &pushhook{Refspec:"refs/heads/master"},
-			want: &pushhook{Refspec:"branch master"},
+			args:   &pushhook{Refspec: "refs/heads/master"},
+			want:   &pushhook{Refspec: "branch master"},
 		},
 		{
 			name:   "refspec: tag v1",
 			fields: fields{},
-			args:   &pushhook{Refspec:"refs/tags/v1.0.0"},
-			want: &pushhook{Refspec:"tag v1.0.0"},
+			args:   &pushhook{Refspec: "refs/tags/v1.0.0"},
+			want:   &pushhook{Refspec: "tag v1.0.0"},
 		},
 		{
 			name:   "baserefspec: master branch",
 			fields: fields{},
-			args:   &pushhook{Baserefspec:"refs/heads/master"},
-			want: &pushhook{Baserefspec:"branch master"},
+			args:   &pushhook{Baserefspec: "refs/heads/master"},
+			want:   &pushhook{Baserefspec: "branch master"},
 		},
 		{
 			name:   "baserefspec: tag v1",
 			fields: fields{},
-			args:   &pushhook{Baserefspec:"refs/tags/v1.0.0"},
-			want: &pushhook{Baserefspec:"tag v1.0.0"},
+			args:   &pushhook{Baserefspec: "refs/tags/v1.0.0"},
+			want:   &pushhook{Baserefspec: "tag v1.0.0"},
 		},
 		{
 			name:   "refspec: non master",
 			fields: fields{},
-			args:   &pushhook{Baserefspec:"refs/heads/testing"},
-			want: &pushhook{Baserefspec:"branch testing"},
+			args:   &pushhook{Baserefspec: "refs/heads/testing"},
+			want:   &pushhook{Baserefspec: "branch testing"},
 		},
 	}
 	for _, tt := range tests {
