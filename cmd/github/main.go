@@ -194,12 +194,29 @@ func (g *github) handlePROpen(data prhook) (messages []string) {
 	return
 }
 
-func (g *github) handlePushEvent(data pushhook) (messages []string) {
-	if strings.HasPrefix(data.Refspec, "refs/heads/") {
-		data.Refspec = fmt.Sprintf("branch %s", strings.TrimPrefix(data.Refspec, "refs/heads/"))
-	} else if strings.HasPrefix(data.Refspec, "refs/tags/") {
-		data.Refspec = fmt.Sprintf("tag %s", strings.TrimPrefix(data.Refspec, "refs/tags/"))
+func (g *github) tidyPushRefspecs(data *pushhook) {
+	data.Refspec = tidyRefsHeads(data.Refspec)
+	data.Refspec = tidyRefsTags(data.Refspec)
+	data.Baserefspec = tidyRefsHeads(data.Baserefspec)
+	data.Baserefspec = tidyRefsTags(data.Baserefspec)
+}
+
+func tidyRefsHeads(input string) string {
+	if strings.HasPrefix(input, "refs/heads/") {
+		return fmt.Sprintf("branch %s", strings.TrimPrefix(input, "refs/heads/"))
 	}
+	return input
+}
+
+func tidyRefsTags(input string) string {
+	if strings.HasPrefix(input, "refs/tags/") {
+		return fmt.Sprintf("tag %s", strings.TrimPrefix(input, "refs/tags/"))
+	}
+	return input
+}
+
+func (g *github) handlePushEvent(data pushhook) (messages []string) {
+	g.tidyPushRefspecs(&data)
 	if data.Created {
 		return g.handleCreate(data)
 	} else if data.Deleted {
