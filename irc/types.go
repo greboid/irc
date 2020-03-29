@@ -80,3 +80,8 @@ type InboundHandler struct {
 type Channel struct {
 	Name string
 }
+
+type Sender interface {
+	SendRaw(string)
+	SendRawf(string, ...interface{})
+}

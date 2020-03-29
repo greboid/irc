@@ -46,7 +46,7 @@ func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
 	h.requested = false
 }
 
-func (h *capabilityHandler) Negotiate(irc *Connection) {
+func (h *capabilityHandler) Negotiate(irc Sender) {
 	irc.SendRaw("CAP LS 302")
 }
 
@@ -70,7 +70,7 @@ func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 	}
 }
 
-func (h *capabilityHandler) handleLS(c *Connection, tokenised []string) {
+func (h *capabilityHandler) handleLS(c Sender, tokenised []string) {
 	if tokenised[0] == "*" {
 		tokenised = tokenised[1:]
 	} else {
@@ -98,7 +98,7 @@ func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*Ca
 	return capabilities
 }
 
-func (h *capabilityHandler) capReq(c *Connection) {
+func (h *capabilityHandler) capReq(c Sender) {
 	var reqs []string
 	for name, capability := range h.List {
 		_, ok := h.wanted[name]
