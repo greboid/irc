@@ -107,7 +107,9 @@ func (h *capabilityHandler) capReq(c *Connection) {
 			capability.waitingonAck = true
 		}
 	}
-	c.SendRawf("CAP REQ :%s", strings.Join(reqs, " "))
+	if len(reqs) > 0 {
+		c.SendRawf("CAP REQ :%s", strings.Join(reqs, " "))
+	}
 }
 
 func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
