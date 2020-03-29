@@ -218,3 +218,55 @@ func Test_capabilityHandler_handleLS(t *testing.T) {
 		})
 	}
 }
+
+func Test_countAcked(t *testing.T) {
+	type args struct {
+		list map[string]*CapabilityStruct
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "One",
+			args: args{
+				list: map[string]*CapabilityStruct{
+					"test1": {name: "test1", acked: false},
+					"test2": {name: "test2", acked: true},
+					"test3": {name: "test3", acked: false},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "Two",
+			args: args{
+				list: map[string]*CapabilityStruct{
+					"test1": {name: "test1", acked: false},
+					"test2": {name: "test2", acked: true},
+					"test3": {name: "test3", acked: true},
+				},
+			},
+			want: 2,
+		},
+		{
+			name: "Three",
+			args: args{
+				list: map[string]*CapabilityStruct{
+					"test1": {name: "test1", acked: true},
+					"test2": {name: "test2", acked: true},
+					"test3": {name: "test3", acked: true},
+				},
+			},
+			want: 3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := countAcked(tt.args.list); got != tt.want {
+				t.Errorf("countAcked() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
