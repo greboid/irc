@@ -16,19 +16,19 @@ import (
 type mockIRCPluginClient struct {
 }
 
-func (m *mockIRCPluginClient) SendChannelMessage(ctx context.Context, in *rpc.ChannelMessage, opts ...grpc.CallOption) (*rpc.Error, error) {
+func (m *mockIRCPluginClient) SendChannelMessage(context.Context, *rpc.ChannelMessage, ...grpc.CallOption) (*rpc.Error, error) {
 	return nil, nil
 }
 
-func (m *mockIRCPluginClient) SendRawMessage(ctx context.Context, in *rpc.RawMessage, opts ...grpc.CallOption) (*rpc.Error, error) {
+func (m *mockIRCPluginClient) SendRawMessage(context.Context, *rpc.RawMessage, ...grpc.CallOption) (*rpc.Error, error) {
 	return nil, nil
 }
 
-func (m *mockIRCPluginClient) GetMessages(ctx context.Context, in *rpc.Channel, opts ...grpc.CallOption) (rpc.IRCPlugin_GetMessagesClient, error) {
+func (m *mockIRCPluginClient) GetMessages(context.Context, *rpc.Channel, ...grpc.CallOption) (rpc.IRCPlugin_GetMessagesClient, error) {
 	return nil, nil
 }
 
-func (m *mockIRCPluginClient) Ping(ctx context.Context, in *rpc.Empty, opts ...grpc.CallOption) (*rpc.Empty, error) {
+func (m *mockIRCPluginClient) Ping(context.Context, *rpc.Empty, ...grpc.CallOption) (*rpc.Empty, error) {
 	return nil, nil
 }
 
