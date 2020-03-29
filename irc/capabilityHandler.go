@@ -54,6 +54,9 @@ func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 	switch m.Params[1] {
 	case "LS":
 		h.handleLS(c, strings.Split(m.Params[2], " "))
+		if !h.listing {
+			h.capReq(c)
+		}
 		break
 	case "ACK":
 		h.handleACK(c, strings.Split(m.Params[2], " "))
@@ -77,9 +80,6 @@ func (h *capabilityHandler) handleLS(c Sender, tokenised []string) {
 		h.listing = false
 	}
 	h.List = h.parseCapabilities(tokenised)
-	if !h.listing {
-		h.capReq(c)
-	}
 }
 
 func (_ *capabilityHandler) parseCapabilities(tokenised []string) map[string]*CapabilityStruct {
