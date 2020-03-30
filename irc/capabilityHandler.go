@@ -158,11 +158,9 @@ func (h *capabilityHandler) handleNAK(tokenised []string) {
 	}
 }
 
-func (h *capabilityHandler) handleDel(m *EventManager, c *Connection, tokenised []string) {
+func (h *capabilityHandler) handleDel(m CapabilityPublisher, c *Connection, tokenised []string) {
 	toRemove := h.parseCapabilities(tokenised)
 	for _, capability := range toRemove {
-		capability.acked = false
-		capability.waitingonAck = false
 		m.PublishCapDel(c, capability)
 	}
 }

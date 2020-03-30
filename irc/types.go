@@ -85,3 +85,15 @@ type Sender interface {
 	SendRaw(string)
 	SendRawf(string, ...interface{})
 }
+
+type CapabilityPublisher interface {
+	PublishCapAdd(conn *Connection, capability *CapabilityStruct)
+	PublishCapDel(conn *Connection, capability *CapabilityStruct)
+}
+
+type CapabilityListener interface {
+	SubscribeCapAdd(receiver func(*Connection, *CapabilityStruct))
+	UnsubscribeCapAdd(receiver func(*Connection, *CapabilityStruct))
+	SubscribeCapDel(receiver func(*Connection, *CapabilityStruct))
+	UnsubscribeCapDel(receiver func(*Connection, *CapabilityStruct))
+}

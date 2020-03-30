@@ -270,3 +270,53 @@ func Test_countAcked(t *testing.T) {
 		})
 	}
 }
+
+type fakeCapabilityPublisher struct {
+	capDels  []*CapabilityStruct
+	capsAdds []*CapabilityStruct
+}
+
+func (f *fakeCapabilityPublisher) PublishCapAdd(_ *Connection, capability *CapabilityStruct) {
+	f.capsAdds = append(f.capsAdds, capability)
+}
+
+func (f *fakeCapabilityPublisher) PublishCapDel(_ *Connection, capability *CapabilityStruct) {
+	f.capDels = append(f.capDels, capability)
+}
+
+func Test_capabilityHandler_handleDel(t *testing.T) {
+	var tests = []struct {
+		name   string
+		fcp    *fakeCapabilityPublisher
+		args   []string
+		wanted []*CapabilityStruct
+	}{
+		{
+			name: "Basic",
+			fcp:  &fakeCapabilityPublisher{},
+			args: []string{"test"},
+			wanted: []*CapabilityStruct{
+				{name: "test"},
+			},
+		},
+		{
+			name: "Multiple",
+			fcp:  &fakeCapabilityPublisher{},
+			args: []string{"test1", "test2", "test3"},
+			wanted: []*CapabilityStruct{
+				{name: "test1"},
+				{name: "test2"},
+				{name: "test3"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &capabilityHandler{}
+			h.handleDel(tt.fcp, nil, tt.args)
+			if !reflect.DeepEqual(tt.fcp.capDels, tt.wanted) {
+				t.Errorf("handleDel() \nReal: %+v\nWant: %+v", tt.fcp.capDels, tt.wanted)
+			}
+		})
+	}
+}

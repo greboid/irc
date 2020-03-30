@@ -32,7 +32,7 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 		SASLPass:     saslPass,
 		Debug:        debug,
 		FloodProfile: floodProfile,
-		listeners: eventManager,
+		listeners:    eventManager,
 	}
 	connection.Init()
 	return connection

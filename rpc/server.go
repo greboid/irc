@@ -15,10 +15,10 @@ import (
 )
 
 type GrpcServer struct {
-	Conn    *irc.Connection
+	Conn         *irc.Connection
 	EventManager irc.EventManager
-	RPCPort int
-	Plugins []Plugin
+	RPCPort      int
+	Plugins      []Plugin
 }
 
 func (s *GrpcServer) StartGRPC() {
@@ -64,7 +64,7 @@ func (s *GrpcServer) checkPlugin(token string) bool {
 }
 
 type pluginServer struct {
-	conn irc.Sender
+	conn         irc.Sender
 	EventManager irc.EventManager
 }
 
