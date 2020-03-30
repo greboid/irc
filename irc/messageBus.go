@@ -11,7 +11,7 @@ type EventManager struct {
 	channelMessage map[reflect.Value]func(Message)
 }
 
-func newEventManager() EventManager {
+func NewEventManager() EventManager {
 	return EventManager{
 		capadds:        make(map[reflect.Value]func(*Connection, *CapabilityStruct)),
 		capdels:        make(map[reflect.Value]func(*Connection, *CapabilityStruct)),

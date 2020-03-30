@@ -15,7 +15,7 @@ import (
 )
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	debug bool, floodProfile string) *Connection {
+	debug bool, floodProfile string, eventManager EventManager) *Connection {
 	log.Print("Creating new IRC")
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -32,6 +32,7 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 		SASLPass:     saslPass,
 		Debug:        debug,
 		FloodProfile: floodProfile,
+		listeners: eventManager,
 	}
 	connection.Init()
 	return connection
@@ -114,7 +115,6 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.listeners = newEventManager()
 	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)

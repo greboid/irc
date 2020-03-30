@@ -35,7 +35,7 @@ func main() {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
 	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
-		*FloodProfile)
+		*FloodProfile, irc.NewEventManager())
 	rpcServer := rpc.GrpcServer{Conn: connection, RPCPort: *RPCPort, Plugins: Plugins}
 	log.Print("Adding callbacks")
 	connection.AddInboundHandler("001", func(_ *irc.EventManager, c *irc.Connection, m *irc.Message) {
