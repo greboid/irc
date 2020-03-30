@@ -314,9 +314,37 @@ func Test_capabilityHandler_handleDel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &capabilityHandler{}
 			h.handleDel(tt.fcp, nil, tt.args)
-			if !reflect.DeepEqual(tt.fcp.capDels, tt.wanted) {
+			if !equals(tt.fcp.capDels, tt.wanted) {
 				t.Errorf("handleDel() \nReal: %+v\nWant: %+v", tt.fcp.capDels, tt.wanted)
 			}
 		})
 	}
+}
+
+func equals(a, b []*CapabilityStruct) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	matches := len(a)
+	for i := range a {
+		if capStructContains(b, *a[i]) {
+			matches--
+		}
+	}
+	return matches == 0
+}
+
+func capStructContains(a []*CapabilityStruct, cap CapabilityStruct) bool {
+	for i := range a {
+		if *a[i] == cap {
+			return true
+		}
+	}
+	return false
 }
