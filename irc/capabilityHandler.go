@@ -35,13 +35,13 @@ func NewCapabilityHandler() *capabilityHandler {
 	}
 }
 
-func (h *capabilityHandler) install(c *Connection) {
+func (h *capabilityHandler) install(_ *EventManager, c *Connection) {
 	c.AddInboundHandler("CAP", h.handleCaps)
 	c.AddInboundHandler("001", h.handleRegistered)
 	h.Negotiate(c)
 }
 
-func (h *capabilityHandler) handleRegistered(*Connection, *Message) {
+func (h *capabilityHandler) handleRegistered(*EventManager, *Connection, *Message) {
 	h.finished = true
 	h.listing = false
 	h.requested = false
@@ -51,7 +51,7 @@ func (h *capabilityHandler) Negotiate(irc Sender) {
 	irc.SendRaw("CAP LS 302")
 }
 
-func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
+func (h *capabilityHandler) handleCaps(eventManager *EventManager, c *Connection, m *Message) {
 	switch m.Params[1] {
 	case "LS":
 		h.handleLS(strings.Split(m.Params[2], " "))
@@ -60,7 +60,7 @@ func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 		}
 		break
 	case "ACK":
-		h.handleACK(c, strings.Split(m.Params[2], " "))
+		h.handleACK(eventManager, c, strings.Split(m.Params[2], " "))
 		break
 	case "NAK":
 		h.handleNAK(strings.Split(m.Params[2], " "))
@@ -72,7 +72,7 @@ func (h *capabilityHandler) handleCaps(c *Connection, m *Message) {
 		}
 		break
 	case "DEL":
-		h.handleDel(c, strings.Split(m.Params[2], " "))
+		h.handleDel(eventManager, c, strings.Split(m.Params[2], " "))
 		break
 	}
 }
@@ -119,14 +119,14 @@ func (h *capabilityHandler) capReq(c Sender) {
 	}
 }
 
-func (h *capabilityHandler) handleACK(c *Connection, tokenised []string) {
+func (h *capabilityHandler) handleACK(m *EventManager, c *Connection, tokenised []string) {
 	h.mutex.Lock()
 	for _, token := range tokenised {
 		capability, ok := h.List[token]
 		if ok {
 			capability.acked = true
 			capability.waitingonAck = false
-			c.PublishCapAdd(c, capability)
+			m.PublishCapAdd(c, capability)
 		}
 	}
 	h.mutex.Unlock()
@@ -158,12 +158,12 @@ func (h *capabilityHandler) handleNAK(tokenised []string) {
 	}
 }
 
-func (h *capabilityHandler) handleDel(c *Connection, tokenised []string) {
+func (h *capabilityHandler) handleDel(m *EventManager, c *Connection, tokenised []string) {
 	toRemove := h.parseCapabilities(tokenised)
 	for _, capability := range toRemove {
 		capability.acked = false
 		capability.waitingonAck = false
-		c.PublishCapDel(c, capability)
+		m.PublishCapDel(c, capability)
 	}
 }
 

@@ -34,7 +34,7 @@ func (h *nickHandler) install(c *Connection) {
 	go h.monitorNickname(c)
 }
 
-func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
+func (h *nickHandler) nicknameChanged(_ *EventManager, c *Connection, m *Message) {
 	sourceNick := strings.SplitN(m.Source, "!", 2)[0]
 	destNick := m.Params[0]
 	if strings.HasPrefix(sourceNick, h.current) {
@@ -46,25 +46,25 @@ func (h *nickHandler) nicknameChanged(c *Connection, m *Message) {
 	}
 }
 
-func (h *nickHandler) nicknameCollision(c *Connection, m *Message) {
-	h.nicknameInUse(c, m)
+func (h *nickHandler) nicknameCollision(em *EventManager, c *Connection, m *Message) {
+	h.nicknameInUse(em, c, m)
 }
 
-func (h *nickHandler) nicknameInUse(c *Connection, _ *Message) {
+func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *Message) {
 	if !h.checkingPreferred {
 		log.Printf("Nickname in use %s", h.current)
-		h.updateNickname(c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
+		h.updateNickname(em, c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
 	} else {
 		h.checkingPreferred = false
 	}
 }
 
-func (h *nickHandler) erroneusNickame(c *Connection, _ *Message) {
+func (h *nickHandler) erroneusNickame(em *EventManager, c *Connection, _ *Message) {
 	log.Printf("Erroneous nickname (%s), randomising.", h.current)
-	h.updateNickname(c, h.randSeq(8))
+	h.updateNickname(em, c, h.randSeq(8))
 }
 
-func (h *nickHandler) updateNickname(c *Connection, newNickname string) {
+func (h *nickHandler) updateNickname(_ *EventManager, c *Connection, newNickname string) {
 	log.Printf("Changing nickname: %s", newNickname)
 	h.current = newNickname
 	c.SendRawf("NICK :%s", h.current)

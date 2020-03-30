@@ -4,13 +4,13 @@ import (
 	"strings"
 )
 
-func (irc *Connection) addOutboundHandlers(handlers []func(c *Connection, m string)) {
+func (irc *Connection) addOutboundHandlers(handlers []func(em *EventManager, c *Connection, m string)) {
 	for _, handler := range handlers {
 		irc.AddOutboundHandler(handler)
 	}
 }
 
-func (irc *Connection) AddOutboundHandler(f func(c *Connection, m string)) {
+func (irc *Connection) AddOutboundHandler(f func(em *EventManager, c *Connection, m string)) {
 	if !irc.initialised {
 		irc.Init()
 	}
@@ -30,13 +30,13 @@ func (irc *Connection) AddRawHandler(f func(c *Connection, m RawMessage)) {
 	irc.rawHandlers = append(irc.rawHandlers, f)
 }
 
-func (irc *Connection) AddInboundHandlers(handlers map[string]func(c *Connection, m *Message)) {
+func (irc *Connection) AddInboundHandlers(handlers map[string]func(em *EventManager, c *Connection, m *Message)) {
 	for verb, handler := range handlers {
 		irc.AddInboundHandler(verb, handler)
 	}
 }
 
-func (irc *Connection) AddInboundHandler(s string, f func(c *Connection, m *Message)) {
+func (irc *Connection) AddInboundHandler(s string, f func(em *EventManager, c *Connection, m *Message)) {
 	if !irc.initialised {
 		irc.Init()
 	}
@@ -48,13 +48,13 @@ func (irc *Connection) runInboundHandlers(m *Message) {
 	handlers := irc.inboundHandlers[m.Verb]
 	handlers = append(handlers, irc.inboundHandlers["*"]...)
 	for _, handler := range handlers {
-		go handler(irc, m)
+		go handler(&irc.listeners, irc, m)
 	}
 }
 
 func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
-		go handler(irc, m)
+		go handler(&irc.listeners, irc, m)
 	}
 }
 

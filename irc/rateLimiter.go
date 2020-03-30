@@ -41,6 +41,6 @@ func (r *RateLimiter) Write(p []byte) (n int, err error) {
 	return r.baseWriter.Write(p)
 }
 
-func (r *RateLimiter) handle001(*Connection, *Message) {
+func (r *RateLimiter) handle001(*EventManager, *Connection, *Message) {
 	r.received001 = true
 }

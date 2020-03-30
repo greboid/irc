@@ -11,6 +11,6 @@ func (h *errorHandler) install(c *Connection) {
 	c.AddInboundHandler("ERROR", h.quitOnError)
 }
 
-func (h *errorHandler) quitOnError(c *Connection, _ *Message) {
+func (h *errorHandler) quitOnError(_ *EventManager, c *Connection, _ *Message) {
 	c.Finished <- true
 }

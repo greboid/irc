@@ -114,8 +114,8 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	log.Print("Initialising IRC")
-	irc.listeners = newEventListeners()
-	irc.inboundHandlers = make(map[string][]func(*Connection, *Message))
+	irc.listeners = newEventManager()
+	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)
@@ -123,7 +123,7 @@ func (irc *Connection) Init() {
 	irc.Finished = make(chan bool, 1)
 	irc.saslFinishedChan = make(chan bool, 1)
 	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-	irc.outboundHandlers = make([]func(*Connection, string), 0)
+	irc.outboundHandlers = make([]func(*EventManager, *Connection, string), 0)
 	irc.rawHandlers = make([]func(*Connection, RawMessage), 0)
 
 	irc.initialised = true
@@ -147,11 +147,11 @@ func (irc *Connection) Connect() error {
 	go irc.miscLoop()
 	go irc.writeLoop()
 	NewErrorHandler().install(irc)
-	NewPingHandler().install(irc)
-	NewCapabilityHandler().install(irc)
+	NewPingHandler().install(&irc.listeners, irc)
+	NewCapabilityHandler().install(&irc.listeners, irc)
 	NewNickHandler(irc.ClientConfig.Nick).install(irc)
 	NewDebugHandler(irc.Debug).install(irc)
-	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc)
+	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(&irc.listeners, irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}

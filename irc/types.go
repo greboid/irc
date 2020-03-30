@@ -48,12 +48,12 @@ type Connection struct {
 	writeChan        chan string
 	errorChannel     chan error
 	rawHandlers      []func(*Connection, RawMessage)
-	inboundHandlers  map[string][]func(*Connection, *Message)
-	outboundHandlers []func(*Connection, string)
+	inboundHandlers  map[string][]func(*EventManager, *Connection, *Message)
+	outboundHandlers []func(*EventManager, *Connection, string)
 	signals          chan os.Signal
 	initialised      bool
 	registered       bool
-	listeners        eventListeners
+	listeners        EventManager
 	saslStarted      bool
 	limitedWriter    io.Writer
 	FloodProfile     string

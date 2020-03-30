@@ -25,9 +25,9 @@ func NewSASLHandler(useSasl bool, saslUser string, saslPass string) *SaslHandler
 	}
 }
 
-func (h *SaslHandler) Install(c *Connection) {
-	c.SubscribeCapAdd(h.handleCapAdd)
-	c.SubscribeCapDel(h.handleCapDel)
+func (h *SaslHandler) Install(em *EventManager, c *Connection) {
+	em.SubscribeCapAdd(h.handleCapAdd)
+	em.SubscribeCapDel(h.handleCapDel)
 	c.AddInboundHandler("900", h.handleLoggedinAs)
 	c.AddInboundHandler("901", h.handleLoggedOut)
 	c.AddInboundHandler("902", h.handleNickLocked)
@@ -72,44 +72,44 @@ func (h *SaslHandler) checkSASLSupported(cap *CapabilityStruct) bool {
 
 func (h *SaslHandler) handleCapDel(*Connection, *CapabilityStruct) {}
 
-func (h *SaslHandler) handleLoggedinAs(*Connection, *Message) {}
+func (h *SaslHandler) handleLoggedinAs(*EventManager, *Connection, *Message) {}
 
-func (h *SaslHandler) handleLoggedOut(*Connection, *Message) {}
+func (h *SaslHandler) handleLoggedOut(*EventManager, *Connection, *Message) {}
 
-func (h *SaslHandler) handleNickLocked(*Connection, *Message) {}
+func (h *SaslHandler) handleNickLocked(*EventManager, *Connection, *Message) {}
 
-func (h *SaslHandler) handleAuthSuccess(c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthSuccess(_ *EventManager, c *Connection, _ *Message) {
 	log.Print("SASL Auth success")
 	c.saslFinishedChan <- true
 }
 
-func (h *SaslHandler) handleAuthFail(c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthFail(_ *EventManager, c *Connection, _ *Message) {
 	log.Print("SASL Auth failed")
 	c.saslFinishedChan <- true
 }
 
-func (h *SaslHandler) handleMessageTooLong(*Connection, *Message) {
+func (h *SaslHandler) handleMessageTooLong(*EventManager, *Connection, *Message) {
 }
 
-func (h *SaslHandler) handleAborted(*Connection, *Message) {
+func (h *SaslHandler) handleAborted(*EventManager, *Connection, *Message) {
 }
 
-func (h *SaslHandler) handleAlreadyAuthed(*Connection, *Message) {
+func (h *SaslHandler) handleAlreadyAuthed(*EventManager, *Connection, *Message) {
 }
 
-func (h *SaslHandler) handleMechanisms(*Connection, *Message) {
+func (h *SaslHandler) handleMechanisms(*EventManager, *Connection, *Message) {
 }
 
-func (h *SaslHandler) handleAuthenticate(c *Connection, m *Message) {
+func (h *SaslHandler) handleAuthenticate(em *EventManager, c *Connection, m *Message) {
 	if h.readyToAuth {
 		if len(m.Params) == 1 && m.Params[0] == "+" {
 			h.authing = true
-			h.doAuth(c)
+			h.doAuth(em, c)
 		}
 	}
 }
 
-func (h *SaslHandler) doAuth(c *Connection) {
+func (h *SaslHandler) doAuth(_ *EventManager, c *Connection) {
 	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s\x00%s\x00%s", h.SASLUser, h.SASLUser, h.SASLPass)))
 	for i := 0; i < len(encoded); i += 400 {
 		c.SendRawf("AUTHENTICATE %s", encoded[i:])

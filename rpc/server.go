@@ -16,6 +16,7 @@ import (
 
 type GrpcServer struct {
 	Conn    *irc.Connection
+	EventManager irc.EventManager
 	RPCPort int
 	Plugins []Plugin
 }
@@ -35,7 +36,7 @@ func (s *GrpcServer) StartGRPC() {
 		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
-	RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn})
+	RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn, s.EventManager})
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Printf("Error listening: %s", err.Error())
@@ -63,7 +64,8 @@ func (s *GrpcServer) checkPlugin(token string) bool {
 }
 
 type pluginServer struct {
-	conn *irc.Connection
+	conn irc.Sender
+	EventManager irc.EventManager
 }
 
 func (ps *pluginServer) SendChannelMessage(_ context.Context, req *ChannelMessage) (*Error, error) {
@@ -92,10 +94,10 @@ func (ps *pluginServer) GetMessages(channel *Channel, stream IRCPlugin_GetMessag
 			chanMessage <- &message
 		}
 	}
-	ps.conn.SubscribeChannelPart(partHandler)
-	defer ps.conn.UnsubscribeChannelPart(partHandler)
-	ps.conn.SubscribeChannelMessage(messageHandler)
-	defer ps.conn.UnsubscribeChannelMessage(messageHandler)
+	ps.EventManager.SubscribeChannelPart(partHandler)
+	defer ps.EventManager.UnsubscribeChannelPart(partHandler)
+	ps.EventManager.SubscribeChannelMessage(messageHandler)
+	defer ps.EventManager.UnsubscribeChannelMessage(messageHandler)
 	for {
 		select {
 		case <-exitLoop:
