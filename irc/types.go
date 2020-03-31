@@ -53,7 +53,7 @@ type Connection struct {
 	signals          chan os.Signal
 	initialised      bool
 	registered       bool
-	listeners        EventManager
+	listeners        *EventManager
 	saslStarted      bool
 	limitedWriter    io.Writer
 	FloodProfile     string

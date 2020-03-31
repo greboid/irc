@@ -14,11 +14,20 @@ import (
 	"strings"
 )
 
+func NewGrpcServer(conn *irc.Connection, eventManager *irc.EventManager, rpcPort int, plugins []Plugin) GrpcServer {
+	return GrpcServer{
+		conn:         conn,
+		eventManager: eventManager,
+		rpcPort:      rpcPort,
+		plugins:      plugins,
+	}
+}
+
 type GrpcServer struct {
-	Conn         *irc.Connection
-	EventManager irc.EventManager
-	RPCPort      int
-	Plugins      []Plugin
+	conn         *irc.Connection
+	eventManager *irc.EventManager
+	rpcPort      int
+	plugins      []Plugin
 }
 
 func (s *GrpcServer) StartGRPC() {
@@ -27,8 +36,8 @@ func (s *GrpcServer) StartGRPC() {
 	if err != nil {
 		log.Fatalf("failed to generate certifcate: %s", err.Error())
 	}
-	log.Printf("Starting RPC: %d", s.RPCPort)
-	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", s.RPCPort), &tls.Config{Certificates: []tls.Certificate{*certificate}})
+	log.Printf("Starting RPC: %d", s.rpcPort)
+	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", s.rpcPort), &tls.Config{Certificates: []tls.Certificate{*certificate}})
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -36,7 +45,7 @@ func (s *GrpcServer) StartGRPC() {
 		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
-	RegisterIRCPluginServer(grpcServer, &pluginServer{s.Conn, s.EventManager})
+	RegisterIRCPluginServer(grpcServer, &pluginServer{s.conn, s.eventManager})
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Printf("Error listening: %s", err.Error())
@@ -55,7 +64,7 @@ func (s *GrpcServer) authPlugin(ctx context.Context) (context.Context, error) {
 }
 
 func (s *GrpcServer) checkPlugin(token string) bool {
-	for _, plugin := range s.Plugins {
+	for _, plugin := range s.plugins {
 		if plugin.Token == token {
 			return true
 		}
@@ -65,7 +74,7 @@ func (s *GrpcServer) checkPlugin(token string) bool {
 
 type pluginServer struct {
 	conn         irc.Sender
-	EventManager irc.EventManager
+	EventManager *irc.EventManager
 }
 
 func (ps *pluginServer) SendChannelMessage(_ context.Context, req *ChannelMessage) (*Error, error) {

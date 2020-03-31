@@ -15,7 +15,7 @@ import (
 )
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	debug bool, floodProfile string, eventManager EventManager) *Connection {
+	debug bool, floodProfile string, eventManager *EventManager) *Connection {
 	log.Print("Creating new IRC")
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -147,11 +147,11 @@ func (irc *Connection) Connect() error {
 	go irc.miscLoop()
 	go irc.writeLoop()
 	NewErrorHandler().install(irc)
-	NewPingHandler().install(&irc.listeners, irc)
-	NewCapabilityHandler().install(&irc.listeners, irc)
+	NewPingHandler().install(irc.listeners, irc)
+	NewCapabilityHandler().install(irc.listeners, irc)
 	NewNickHandler(irc.ClientConfig.Nick).install(irc)
 	NewDebugHandler(irc.Debug).install(irc)
-	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(&irc.listeners, irc)
+	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc.listeners, irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}

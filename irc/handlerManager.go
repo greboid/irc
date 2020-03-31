@@ -48,13 +48,13 @@ func (irc *Connection) runInboundHandlers(m *Message) {
 	handlers := irc.inboundHandlers[m.Verb]
 	handlers = append(handlers, irc.inboundHandlers["*"]...)
 	for _, handler := range handlers {
-		go handler(&irc.listeners, irc, m)
+		go handler(irc.listeners, irc, m)
 	}
 }
 
 func (irc *Connection) runOutboundHandlers(m string) {
 	for _, handler := range irc.outboundHandlers {
-		go handler(&irc.listeners, irc, m)
+		go handler(irc.listeners, irc, m)
 	}
 }
 

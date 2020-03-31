@@ -11,8 +11,8 @@ type EventManager struct {
 	channelMessage map[reflect.Value]func(Message)
 }
 
-func NewEventManager() EventManager {
-	return EventManager{
+func NewEventManager() *EventManager {
+	return &EventManager{
 		capadds:        make(map[reflect.Value]func(*Connection, *CapabilityStruct)),
 		capdels:        make(map[reflect.Value]func(*Connection, *CapabilityStruct)),
 		channelParts:   make(map[reflect.Value]func(Channel)),
@@ -48,7 +48,7 @@ func (irc *EventManager) PublishCapDel(conn *Connection, capability *CapabilityS
 	}
 }
 
-func (irc *EventManager) SubscribeChannelPart(receiver func(Channel)) {
+func (irc EventManager) SubscribeChannelPart(receiver func(Channel)) {
 	irc.channelParts[reflect.ValueOf(receiver)] = receiver
 }
 
