@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/subtle"
 	"crypto/tls"
-	"encoding/json"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"github.com/greboid/irc/rpc"
@@ -100,193 +103,17 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 		writer.WriteHeader(http.StatusBadRequest)
 	}
 	_, _ = writer.Write([]byte("Delivered."))
-	if err := g.handleWebhook(eventType, bodyBytes); err != nil {
+	webhookHandler := githubWebhookHandler{
+		client:g.client,
+	}
+	if err := webhookHandler.handleWebhook(eventType, bodyBytes); err != nil {
 		_, _ = writer.Write([]byte("Error."))
 	}
 }
 
-func (g *github) handleWebhook(eventType string, bodyBytes []byte) error {
-	switch eventType {
-	case "push":
-		data := pushhook{}
-		err := json.Unmarshal(bodyBytes, &data)
-		if err == nil {
-			go g.sendMessage(g.handlePushEvent(data))
-		} else {
-			log.Printf("Error handling push: %s", err.Error())
-			return err
-		}
-	case "pull_request":
-		data := prhook{}
-		err := json.Unmarshal(bodyBytes, &data)
-		if err == nil {
-			go g.sendMessage(g.handlePREvent(data))
-		} else {
-			log.Printf("Error handling PR: %s", err.Error())
-			return err
-		}
-	case "issues":
-		// TODO: Handle
-		return nil
-	case "issue_comment":
-		// TODO: Handle
-		return nil
-	case "check_run":
-		// TODO: Handle
-		return nil
-	case "release":
-		// TODO: Handle
-		return nil
-	case "create":
-		// TODO: Handle
-		return nil
-	case "check_suite":
-		// TODO: Handle
-		return nil
-	}
-	return nil
-}
-
-func (g *github) handlePREvent(data prhook) (messages []string) {
-	if data.Action == "opened" {
-		return g.handlePROpen(data)
-	} else if data.Action == "closed" {
-		if data.PullRequest.Merged == "" {
-			return g.handlePRClose(data)
-		} else {
-			return g.handlePRMerged(data)
-		}
-	}
-	return
-}
-
-func (g *github) handlePRClose(data prhook) (messages []string) {
-	messages = append(messages, fmt.Sprintf(
-		"[%s] %s closed PR: %s -  %s",
-		data.Repository.FullName,
-		data.PullRequest.User.Login,
-		data.PullRequest.Title,
-		data.PullRequest.HtmlURL,
-	))
-	return
-}
-
-func (g *github) handlePRMerged(data prhook) (messages []string) {
-	messages = append(messages, fmt.Sprintf(
-		"[%s] %s merged PR from %s: %s -  %s",
-		data.Repository.FullName,
-		data.PullRequest.MergedBy.Login,
-		data.PullRequest.User.Login,
-		data.PullRequest.Title,
-		data.PullRequest.HtmlURL,
-	))
-	return
-}
-
-func (g *github) handlePROpen(data prhook) (messages []string) {
-	messages = append(messages, fmt.Sprintf(
-		"[%s] %s submitted PR: %s -  %s",
-		data.Repository.FullName,
-		data.PullRequest.User.Login,
-		data.PullRequest.Title,
-		data.PullRequest.HtmlURL,
-	))
-	return
-}
-
-func (g *github) tidyPushRefspecs(data *pushhook) {
-	data.Refspec = tidyRefsHeads(data.Refspec)
-	data.Refspec = tidyRefsTags(data.Refspec)
-	data.Baserefspec = tidyRefsHeads(data.Baserefspec)
-	data.Baserefspec = tidyRefsTags(data.Baserefspec)
-}
-
-func tidyRefsHeads(input string) string {
-	if strings.HasPrefix(input, "refs/heads/") {
-		return fmt.Sprintf("branch %s", strings.TrimPrefix(input, "refs/heads/"))
-	}
-	return input
-}
-
-func tidyRefsTags(input string) string {
-	if strings.HasPrefix(input, "refs/tags/") {
-		return fmt.Sprintf("tag %s", strings.TrimPrefix(input, "refs/tags/"))
-	}
-	return input
-}
-
-func (g *github) handlePushEvent(data pushhook) (messages []string) {
-	g.tidyPushRefspecs(&data)
-	if data.Created {
-		return g.handleCreate(data)
-	} else if data.Deleted {
-		return g.handleDelete(data)
-	} else {
-		return g.handleCommit(data)
-	}
-}
-
-func (g *github) handleDelete(data pushhook) (messages []string) {
-	messages = append(messages, fmt.Sprintf(
-		"[%s] %s deleted %s",
-		data.Repository.FullName,
-		data.Pusher.Name,
-		data.Refspec,
-	))
-	return
-}
-
-func (g *github) handleCreate(data pushhook) (messages []string) {
-	if data.Baserefspec == "" {
-		messages = append(messages, fmt.Sprintf(
-			"[%s] %s created %s - %s",
-			data.Repository.FullName,
-			data.Pusher.Name,
-			data.Refspec,
-			data.CompareLink,
-		))
-	} else {
-		messages = append(messages, fmt.Sprintf(
-			"[%s] %s created %s from %s - %s",
-			data.Repository.FullName,
-			data.Pusher.Name,
-			data.Refspec,
-			data.Baserefspec,
-			data.CompareLink,
-		))
-	}
-	return
-}
-
-func (g *github) handleCommit(data pushhook) (messages []string) {
-	messages = append(messages, fmt.Sprintf(
-		"[%s] %s pushed %d commits to %s - %s",
-		data.Repository.FullName,
-		data.Pusher.Name,
-		len(data.Commits),
-		data.Refspec,
-		data.CompareLink,
-	))
-	for _, commit := range data.Commits {
-		messages = append(messages, fmt.Sprintf(
-			"[%s] %s committed %s - %s",
-			data.Repository.FullName,
-			commit.Author.User,
-			commit.ID[len(commit.ID)-6:],
-			strings.SplitN(commit.Message, "\n", 2)[0],
-		))
-	}
-	return
-}
-
-func (g *github) sendMessage(messages []string) {
-	for index := range messages {
-		_, err := g.client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
-			Channel: *Channel,
-			Message: messages[index],
-		})
-		if err != nil {
-			log.Printf("Error sending to channel: %s", err.Error())
-		}
-	}
+func CheckGithubSecret(bodyBytes []byte, headerSecret string, githubSecret string) bool {
+	h := hmac.New(sha1.New, []byte(githubSecret))
+	h.Write(bodyBytes)
+	expected := fmt.Sprintf("%s", hex.EncodeToString(h.Sum(nil)))
+	return len(expected) == len(headerSecret) && subtle.ConstantTimeCompare([]byte(expected), []byte(headerSecret)) == 1
 }

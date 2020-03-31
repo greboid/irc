@@ -1,20 +1,5 @@
 package main
 
-import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"crypto/subtle"
-	"encoding/hex"
-	"fmt"
-)
-
-func CheckGithubSecret(bodyBytes []byte, headerSecret string, githubSecret string) bool {
-	h := hmac.New(sha1.New, []byte(githubSecret))
-	h.Write(bodyBytes)
-	expected := fmt.Sprintf("%s", hex.EncodeToString(h.Sum(nil)))
-	return len(expected) == len(headerSecret) && subtle.ConstantTimeCompare([]byte(expected), []byte(headerSecret)) == 1
-}
-
 //Push events
 type pushhook struct {
 	Refspec     string     `json:"ref"`
