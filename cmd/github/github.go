@@ -54,3 +54,18 @@ type PullRequest struct {
 type User struct {
 	Login string `json:"login"`
 }
+
+//Issue events
+type issuehook struct {
+	Action     string     `json:"action"`
+	Issue      Issue      `json:"issue"`
+	Repository Repository `json:"repository"`
+	User       User       `json:"sender"`
+}
+
+type Issue struct {
+	HtmlURL string `json:"html_url"`
+	Title   string `json:"title"`
+	State   string `json:"state"`
+	User    User   `json:"user"`
+}
