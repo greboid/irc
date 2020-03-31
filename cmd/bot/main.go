@@ -39,12 +39,7 @@ func main() {
 		*FloodProfile, eventManager)
 	rpcServer := rpc.NewGrpcServer(connection, eventManager, *RPCPort, Plugins)
 	log.Print("Adding callbacks")
-	connection.AddInboundHandler("001", func(_ *irc.EventManager, c *irc.Connection, m *irc.Message) {
-		c.SendRawf("JOIN :%s", *Channel)
-	})
-	connection.AddInboundHandler("PRIVMSG", func(em *irc.EventManager, _ *irc.Connection, m *irc.Message) {
-		em.PublishChannelMessage(*m)
-	})
+	addBotCallbacks(connection)
 	go rpcServer.StartGRPC()
 	err = connection.ConnectAndWaitWithRetry(5)
 	if err != nil {
