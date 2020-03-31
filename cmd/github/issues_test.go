@@ -17,16 +17,6 @@ func Test_githubissuehandler_handIssueEvent_open(t *testing.T) {
 	if len(messages) == 0 {
 		t.Fatal("Output expected, none provided")
 	}
-	g = &githubissuehandler{}
-	hook = issuehook{}
-	err = getTestData("issues/closed_1.json", &hook)
-	if err != nil {
-		t.Fatal("Unable to parse example data")
-	}
-	messages = g.handleIssueEvent(hook)
-	if len(messages) == 0 {
-		t.Fatal("Output expected, none provided")
-	}
 }
 
 func Test_githubissuehandler_handIssueEvent_closed(t *testing.T) {
