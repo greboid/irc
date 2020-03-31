@@ -104,7 +104,7 @@ func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request)
 	}
 	_, _ = writer.Write([]byte("Delivered."))
 	webhookHandler := githubWebhookHandler{
-		client:g.client,
+		client: g.client,
 	}
 	if err := webhookHandler.handleWebhook(eventType, bodyBytes); err != nil {
 		_, _ = writer.Write([]byte("Error."))

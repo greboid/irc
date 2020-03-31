@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-type githubWebhookHandler struct{
+type githubWebhookHandler struct {
 	client rpc.IRCPluginClient
 }
 

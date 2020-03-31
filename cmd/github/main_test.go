@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 )
 
-type mockIRCPluginClient struct {}
+type mockIRCPluginClient struct{}
 
 func (m *mockIRCPluginClient) SendChannelMessage(context.Context, *rpc.ChannelMessage, ...grpc.CallOption) (*rpc.Error, error) {
 	return nil, nil
