@@ -34,11 +34,25 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 			return err
 		}
 	case "issues":
-		// TODO: Handle
-		return nil
+		data := issuehook{}
+		handler := githubissuehandler{}
+		err := json.Unmarshal(bodyBytes, &data)
+		if err == nil {
+			go g.sendMessage(handler.handleIssueEvent(data))
+		} else {
+			log.Printf("Error handling PR: %s", err.Error())
+			return err
+		}
 	case "issue_comment":
-		// TODO: Handle
-		return nil
+		data := issuehook{}
+		handler := githubIssueCommenthandler{}
+		err := json.Unmarshal(bodyBytes, &data)
+		if err == nil {
+			go g.sendMessage(handler.handleIssueCommentEvent(data))
+		} else {
+			log.Printf("Error handling PR: %s", err.Error())
+			return err
+		}
 	case "check_run":
 		// TODO: Handle
 		return nil
