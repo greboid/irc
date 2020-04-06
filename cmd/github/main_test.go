@@ -9,13 +9,21 @@ import (
 	"io/ioutil"
 )
 
-type mockIRCPluginClient struct{}
+type mockIRCPluginClient struct {
+	sentRawMessages     int
+	sentChannelMessages int
+	finished            chan bool
+}
 
-func (m *mockIRCPluginClient) SendChannelMessage(context.Context, *rpc.ChannelMessage, ...grpc.CallOption) (*rpc.Error, error) {
+func (m *mockIRCPluginClient) SendChannelMessage(context context.Context, mess *rpc.ChannelMessage, opt ...grpc.CallOption) (*rpc.Error, error) {
+	m.sentChannelMessages = m.sentChannelMessages + 1
+	m.finished <- true
 	return nil, nil
 }
 
 func (m *mockIRCPluginClient) SendRawMessage(context.Context, *rpc.RawMessage, ...grpc.CallOption) (*rpc.Error, error) {
+	m.sentRawMessages = m.sentRawMessages + 1
+	m.finished <- true
 	return nil, nil
 }
 
@@ -28,10 +36,14 @@ func (m *mockIRCPluginClient) Ping(context.Context, *rpc.Empty, ...grpc.CallOpti
 }
 
 func getTestData(filename string, output interface{}) error {
-	data, err := ioutil.ReadFile(fmt.Sprintf("./testdata/%s", filename))
+	data, err := getTestDataBytes(filename)
 	if err != nil {
 		return err
 	}
 	err = json.Unmarshal(data, &output)
 	return err
+}
+
+func getTestDataBytes(filename string) ([]byte, error) {
+	return ioutil.ReadFile(fmt.Sprintf("./testdata/%s", filename))
 }
