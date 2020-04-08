@@ -18,7 +18,14 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 		handler := githubPushHandler{}
 		err := json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			go g.sendMessage(handler.handlePushEvent(data))
+			go func() {
+				err := g.sendMessage(handler.handlePushEvent(data))
+				if len(err) > 0 {
+					for index := range err {
+						log.Printf("Error handling push: %s", err[index].Error())
+					}
+				}
+			}()
 		} else {
 			log.Printf("Error handling push: %s", err.Error())
 			return err
@@ -28,7 +35,14 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 		handler := githubPRHandler{}
 		err := json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			go g.sendMessage(handler.handlePREvent(data))
+			go func() {
+				err := g.sendMessage(handler.handlePREvent(data))
+				if len(err) > 0 {
+					for index := range err {
+						log.Printf("Error handling push: %s", err[index].Error())
+					}
+				}
+			}()
 		} else {
 			log.Printf("Error handling PR: %s", err.Error())
 			return err
@@ -38,7 +52,14 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 		handler := githubissuehandler{}
 		err := json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			go g.sendMessage(handler.handleIssueEvent(data))
+			go func() {
+				err := g.sendMessage(handler.handleIssueEvent(data))
+				if len(err) > 0 {
+					for index := range err {
+						log.Printf("Error handling push: %s", err[index].Error())
+					}
+				}
+			}()
 		} else {
 			log.Printf("Error handling PR: %s", err.Error())
 			return err
@@ -48,7 +69,14 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 		handler := githubIssueCommenthandler{}
 		err := json.Unmarshal(bodyBytes, &data)
 		if err == nil {
-			go g.sendMessage(handler.handleIssueCommentEvent(data))
+			go func() {
+				err := g.sendMessage(handler.handleIssueCommentEvent(data))
+				if len(err) > 0 {
+					for index := range err {
+						log.Printf("Error handling push: %s", err[index].Error())
+					}
+				}
+			}()
 		} else {
 			log.Printf("Error handling PR: %s", err.Error())
 			return err
@@ -69,14 +97,16 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 	return nil
 }
 
-func (g *githubWebhookHandler) sendMessage(messages []string) {
+func (g *githubWebhookHandler) sendMessage(messages []string) []error {
+	errors := make([]error, 0)
 	for index := range messages {
 		_, err := g.client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
 			Channel: *Channel,
 			Message: messages[index],
 		})
 		if err != nil {
-			log.Printf("Error sending to channel: %s", err.Error())
+			errors = append(errors, err)
 		}
 	}
+	return errors
 }

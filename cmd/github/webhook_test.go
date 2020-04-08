@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -128,6 +130,39 @@ func Test_githubWebhookHandler_handleWebhook(t *testing.T) {
 			}
 			if tt.client.sentChannelMessages != tt.output {
 				t.Errorf("handleWebhook() sent = %v, wanted %v", tt.client.sentChannelMessages, tt.output)
+			}
+		})
+	}
+}
+
+func Test_githubWebhookHandler_sendMessage(t *testing.T) {
+	tests := []struct {
+		name     string
+		client   *mockFailingIRCPluginClient
+		messages []string
+		wanted   []error
+	}{
+		{
+			name:     "Check working",
+			client:   &mockFailingIRCPluginClient{err: false},
+			messages: []string{"test"},
+			wanted:   []error{},
+		},
+		{
+			name:     "Check Failing",
+			client:   &mockFailingIRCPluginClient{err: true},
+			messages: []string{"test"},
+			wanted:   []error{errors.New("fake error")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := &githubWebhookHandler{
+				client: tt.client,
+			}
+			got := g.sendMessage(tt.messages)
+			if !reflect.DeepEqual(got, tt.wanted) {
+				t.Errorf("sendMessage() sent = %v, wanted %v", got, tt.wanted)
 			}
 		})
 	}
