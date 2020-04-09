@@ -93,7 +93,7 @@ func Test_github_handleCommit(t *testing.T) {
 	}
 }
 
-func Test_githubPushHandler_handleCreate(t *testing.T) {
+func Test_githubPushHandler_handleDelete(t *testing.T) {
 	tests := []string{"push/delete/delete_1.json"}
 	gold := goldie.New(t)
 	for index := range tests {
