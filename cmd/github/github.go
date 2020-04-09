@@ -5,6 +5,7 @@ type pushhook struct {
 	Refspec     string     `json:"ref"`
 	Repository  Repository `json:"repository"`
 	Pusher      Pusher     `json:"pusher"`
+	Sender      Sender     `json:"sender"`
 	Forced      bool       `json:"forced"`
 	Deleted     bool       `json:"deleted"`
 	Created     bool       `json:"created"`
@@ -31,6 +32,10 @@ type Commit struct {
 
 type Author struct {
 	User string `json:"username"`
+}
+
+type Sender struct {
+	Login string `json:"login"`
 }
 
 //Pull Request events

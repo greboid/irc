@@ -90,6 +90,22 @@ func Test_github_handleCommit(t *testing.T) {
 			got := []byte(strings.Join(g.handleCommit(hook), "\n"))
 			gold.Assert(t, tests[index], got)
 		})
+	}
+}
 
+func Test_githubPushHandler_handleCreate(t *testing.T) {
+	tests := []string{"push/delete/delete_1.json"}
+	gold := goldie.New(t)
+	for index := range tests {
+		t.Run(tests[index], func(t *testing.T) {
+			g := &githubPushHandler{}
+			hook := pushhook{}
+			err := getTestData(tests[index], &hook)
+			if err != nil {
+				t.Fatal("Unable to parse example data")
+			}
+			got := []byte(strings.Join(g.handleDelete(hook), "\n"))
+			gold.Assert(t, tests[index], got)
+		})
 	}
 }

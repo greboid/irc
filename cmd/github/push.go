@@ -43,7 +43,7 @@ func (g *githubPushHandler) handleDelete(data pushhook) (messages []string) {
 	messages = append(messages, fmt.Sprintf(
 		"[%s] %s deleted %s",
 		data.Repository.FullName,
-		data.Pusher.Name,
+		data.Sender.Login,
 		data.Refspec,
 	))
 	return
