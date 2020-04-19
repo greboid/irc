@@ -152,6 +152,7 @@ func (irc *Connection) Connect() error {
 	NewNickHandler(irc.ClientConfig.Nick).install(irc)
 	NewDebugHandler(irc.Debug).install(irc)
 	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc.listeners, irc)
+	NewSupportHandler().install(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
 	}
