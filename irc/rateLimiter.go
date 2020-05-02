@@ -28,7 +28,7 @@ func (r *RateLimiter) Init(profile string) {
 		r.limiter = rate.NewLimiter(rate.Inf, 0)
 		r.byteToToken = 1
 	case "restrictive":
-		r.limiter = rate.NewLimiter(rate.Limit(0.4), 4)
+		r.limiter = rate.NewLimiter(rate.Limit(0.3), 4)
 		r.byteToToken = 128
 	}
 }
