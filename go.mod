@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/golang/protobuf v1.4.1
-	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/imdario/mergo v0.3.9
 	github.com/kouhin/envflag v0.0.0-20150818174321-0e9a86061649
@@ -12,7 +11,7 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/sebdah/goldie/v2 v2.3.0
+	github.com/sebdah/goldie/v2 v2.4.0
 	github.com/tidwall/buntdb v1.1.2
 	github.com/tidwall/gjson v1.6.0 // indirect
 	github.com/tidwall/pretty v1.0.1 // indirect

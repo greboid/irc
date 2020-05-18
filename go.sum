@@ -76,6 +76,8 @@ github.com/sebdah/goldie/v2 v2.2.0 h1:xPECnNgZUaf6vpnmpR2Vt/SWE62B+Yvr/CBwsmTxgH
 github.com/sebdah/goldie/v2 v2.2.0/go.mod h1:oZ9fp0+se1eapSRjfYbsV/0Hqhbuu3bJVvKI/NNtssI=
 github.com/sebdah/goldie/v2 v2.3.0 h1:qOrofCLbWLjF2PDEL/BueSdFC8V8VyRKccKmqf/89ws=
 github.com/sebdah/goldie/v2 v2.3.0/go.mod h1:oZ9fp0+se1eapSRjfYbsV/0Hqhbuu3bJVvKI/NNtssI=
+github.com/sebdah/goldie/v2 v2.4.0 h1:1k/pwpbB1XEVk8e8iUCamn04R+p4nqWbfLPUh8edPLI=
+github.com/sebdah/goldie/v2 v2.4.0/go.mod h1:oZ9fp0+se1eapSRjfYbsV/0Hqhbuu3bJVvKI/NNtssI=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
