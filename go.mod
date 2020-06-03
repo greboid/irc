@@ -3,7 +3,7 @@ module github.com/greboid/irc
 go 1.13
 
 require (
-	github.com/golang/protobuf v1.4.1
+	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/imdario/mergo v0.3.9
 	github.com/kouhin/envflag v0.0.0-20150818174321-0e9a86061649
