@@ -28,12 +28,12 @@ func (h *debugHandler) handleRawMessage(c *Connection, m RawMessage) {
 
 func (h *debugHandler) handleMessage(_ *Connection, m RawMessage) {
 	if h.debug {
-		log.Printf(" IN ▏ %s", m.message)
+		log.Printf(" IN | %s", m.message)
 	}
 }
 
 func (h *debugHandler) handleOutboundMessage(_ *Connection, m RawMessage) {
 	if h.debug {
-		log.Printf("OUT ▏ %s", m.message)
+		log.Printf("OUT | %s", m.message)
 	}
 }
