@@ -68,11 +68,7 @@ func (g *github) doWeb() error {
 		return err
 	}
 	client := rpc.NewHTTPPluginClient(conn)
-	_, err = client.RegisterRoute(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.Route{Prefix: "github"})
-	if err != nil {
-		return err
-	}
-	stream, err := client.GetRequest(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken))
+	stream, err := client.GetRequest(rpc.CtxWithTokenAndPath(context.Background(), "bearer", *RPCToken, "github"))
 	for {
 		request, err := stream.Recv()
 		if err == io.EOF {
@@ -96,29 +92,32 @@ func (g *github) handleGithub(request *rpc.HttpRequest) *rpc.HttpResponse {
 	if header[0] != "sha1" {
 		log.Printf("Error: %s", "Bad header")
 		return &rpc.HttpResponse{
-			Header:               nil,
-			Body:                 []byte("Bad headers"),
-			Status:               http.StatusInternalServerError,
+			Header: nil,
+			Body:   []byte("Bad headers"),
+			Status: http.StatusInternalServerError,
 		}
 	}
 	if !CheckGithubSecret(request.Body, header[1], *GithubSecret) {
 		log.Printf("Error: %s", "Bad hash")
 		return &rpc.HttpResponse{
-			Header:               nil,
-			Body:                 []byte("Bad hash"),
-			Status:               http.StatusBadRequest,
+			Header: nil,
+			Body:   []byte("Bad hash"),
+			Status: http.StatusBadRequest,
 		}
 	}
 	go func() {
 		webhookHandler := githubWebhookHandler{
 			client: g.client,
 		}
-		_ = webhookHandler.handleWebhook(eventType, request.Body)
+		err := webhookHandler.handleWebhook(eventType, request.Body)
+		if err != nil {
+			log.Printf("Unable to handle webhook: %s", err.Error())
+		}
 	}()
 	return &rpc.HttpResponse{
-		Header:               nil,
-		Body:                 []byte("Delivered"),
-		Status:               http.StatusOK,
+		Header: nil,
+		Body:   []byte("Delivered"),
+		Status: http.StatusOK,
 	}
 }
 

@@ -51,6 +51,5 @@ message HttpHeader {
 }
 
 service HTTPPlugin {
-    rpc registerRoute(Route) returns (Error) {};
     rpc getRequest(stream HttpResponse) returns (stream HttpRequest) {};
 }

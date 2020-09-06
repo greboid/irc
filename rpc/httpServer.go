@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
@@ -24,9 +25,8 @@ type httpServer struct {
 }
 
 type descriptor struct {
-	prefix string
-	token string
-	stream *HTTPPlugin_GetRequestServer
+	prefix  string
+	stream  *HTTPPlugin_GetRequestServer
 	receive chan *HttpResponse
 }
 
@@ -82,53 +82,31 @@ func (h *httpServer) checkPlugin(token string) bool {
 	return false
 }
 
-func (h *httpServer) RegisterRoute(ctx context.Context, route *Route) (*Error, error) {
-	token, _ := grpcauth.AuthFromMD(ctx, "bearer")
-	for k := range h.pathMap {
-		if route.Prefix == h.pathMap[k].prefix {
-			return &Error{
-				Message: "Prefix already registered",
-			}, errors.New("prefix already registered")
-		}
-	}
-	h.pathMap[token] = &descriptor{
-		token:  token,
-		prefix: route.Prefix,
-		receive: make(chan *HttpResponse, 1),
-	}
-	log.Printf("%s registered %s", token, route.Prefix)
-	return &Error{}, nil
-}
-
 func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Request) {
-	log.Printf("Request: %s", request.URL)
 	for k := range h.pathMap {
 		if strings.HasPrefix(request.URL.Path, fmt.Sprintf("/%s", h.pathMap[k].prefix)) {
-			log.Printf("Request matvhes prefix")
-			log.Printf("Desriptor: %+v", h.pathMap[k])
 			stream := *h.pathMap[k].stream
 			if stream != nil {
 				body, err := ioutil.ReadAll(request.Body)
 				if err != nil {
 					writer.WriteHeader(http.StatusInternalServerError)
 				}
-				log.Printf("Sending request to plugin %s", h.pathMap[k].token)
 				err = stream.Send(&HttpRequest{
 					Header: ConvertToRPCHeaders(request.Header),
-					Body: body,
+					Body:   body,
 				})
 				if err != nil {
 					log.Printf("Unable to send to plugin")
 					return
 				}
 				select {
-					case response := <-h.pathMap[k].receive:
-						for index := range response.Header {
-							writer.Header().Add(response.Header[index].Key, response.Header[index].Value)
-						}
-						writer.WriteHeader(int(response.Status))
-						_, _ = writer.Write(response.Body)
-					case <-time.After(1 * time.Second):
+				case response := <-h.pathMap[k].receive:
+					for index := range response.Header {
+						writer.Header().Add(response.Header[index].Key, response.Header[index].Value)
+					}
+					writer.WriteHeader(int(response.Status))
+					_, _ = writer.Write(response.Body)
+				case <-time.After(1 * time.Second):
 				}
 			}
 		}
@@ -136,21 +114,26 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 }
 
 func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
-	token, _ := grpcauth.AuthFromMD(stream.Context(), "bearer")
-	descriptor, ok := h.pathMap[token]
-	if !ok {
-		return errors.New("plugin not registered")
+	path := metautils.ExtractIncoming(stream.Context()).Get("path")
+	if _, ok := h.pathMap[path]; ok {
+		return errors.New("prefix already registered")
 	}
-	descriptor.stream = &stream
+	h.pathMap[path] = &descriptor{
+		prefix:  path,
+		receive: make(chan *HttpResponse, 1),
+		stream:  &stream,
+	}
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
+			delete(h.pathMap, path)
 			return nil
 		}
 		if err != nil {
+			delete(h.pathMap, path)
 			return err
 		}
-		descriptor.receive <- in
+		h.pathMap[path].receive <- in
 	}
 }
 
@@ -167,8 +150,8 @@ func ConvertToRPCHeaders(headers http.Header) []*HttpHeader {
 	for key, value := range headers {
 		for index := range value {
 			rpcHeaders = append(rpcHeaders, &HttpHeader{
-				Key:                  key,
-				Value:                value[index],
+				Key:   key,
+				Value: value[index],
 			})
 		}
 

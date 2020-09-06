@@ -15,6 +15,13 @@ func CtxWithToken(ctx context.Context, scheme string, token string) context.Cont
 	return nCtx
 }
 
+func CtxWithTokenAndPath(ctx context.Context, scheme string, token string, path string) context.Context {
+	md := metadata.Pairs("authorization", fmt.Sprintf("%s %v", scheme, token))
+	md.Append("path", path)
+	nCtx := metautils.NiceMD(md).ToOutgoing(ctx)
+	return nCtx
+}
+
 func ParsePluginString(pluginString string) (plugins []Plugin, err error) {
 	for _, value := range strings.Split(pluginString, ",") {
 		if len(value) == 0 {
