@@ -1,5 +1,9 @@
 package main
 
+//ping events
+type pinghook struct {
+}
+
 //Push events
 type pushhook struct {
 	Refspec     string     `json:"ref"`

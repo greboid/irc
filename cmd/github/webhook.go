@@ -13,6 +13,22 @@ type githubWebhookHandler struct {
 
 func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte) error {
 	switch eventType {
+	case "ping":
+		data := pinghook{}
+		err := json.Unmarshal(bodyBytes, &data)
+		if err == nil {
+			go func() {
+				err := g.sendMessage([]string{"Ping received."})
+				if len(err) > 0 {
+					for index := range err {
+						log.Printf("Error handling push: %s", err[index].Error())
+					}
+				}
+			}()
+		} else {
+			log.Printf("Error handling push: %s", err.Error())
+			return err
+		}
 	case "push":
 		data := pushhook{}
 		handler := githubPushHandler{}
