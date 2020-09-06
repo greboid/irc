@@ -107,6 +107,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					writer.WriteHeader(int(response.Status))
 					_, _ = writer.Write(response.Body)
 				case <-time.After(1 * time.Second):
+					log.Printf("Timeout waiting for plugin")
 				}
 			}
 		}
@@ -118,6 +119,7 @@ func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
 	if _, ok := h.pathMap[path]; ok {
 		return errors.New("prefix already registered")
 	}
+	log.Printf("Plugin listening for /%s/*", path)
 	h.pathMap[path] = &descriptor{
 		prefix:  path,
 		receive: make(chan *HttpResponse, 1),
@@ -126,10 +128,12 @@ func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
+			log.Printf("Plugin stopped listening for /%s/*", path)
 			delete(h.pathMap, path)
 			return nil
 		}
 		if err != nil {
+			log.Printf("Plugin stopped listening for /%s/*", path)
 			delete(h.pathMap, path)
 			return err
 		}
