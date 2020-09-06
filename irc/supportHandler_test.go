@@ -208,12 +208,12 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 		wanted []supportedValue
 	}{
 		{
-			name:   "null message",
+			name: "null message",
 			fields: fields{
 				values: nil,
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
 				m:  nil,
@@ -221,15 +221,15 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			wanted: nil,
 		},
 		{
-			name:   "null params",
+			name: "null params",
 			fields: fields{
 				values: nil,
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
-				m:  &Message{
+				m: &Message{
 					Raw:    "",
 					Tags:   "",
 					Source: "",
@@ -240,15 +240,15 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			wanted: nil,
 		},
 		{
-			name:   "empty message",
+			name: "empty message",
 			fields: fields{
 				values: nil,
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
-				m:  &Message{
+				m: &Message{
 					Raw:    "",
 					Tags:   "",
 					Source: "",
@@ -259,12 +259,12 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			wanted: nil,
 		},
 		{
-			name:   "multiple values",
+			name: "multiple values",
 			fields: fields{
 				values: nil,
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
 				m:  connection.parseMesage(":server 005 nick AWAYLEN=500 CHANLIMIT=#:100 :are supported by this server"),
@@ -281,12 +281,12 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			},
 		},
 		{
-			name:   "empty value",
+			name: "empty value",
 			fields: fields{
 				values: nil,
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
 				m:  connection.parseMesage(":server 005 nick EXCEPTS= :are supported by this server"),
@@ -299,7 +299,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			},
 		},
 		{
-			name:   "handle remove",
+			name: "handle remove",
 			fields: fields{
 				values: []supportedValue{
 					{
@@ -307,9 +307,9 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 						value: "500",
 					},
 				},
-				conn:   &connection,
+				conn: &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
 				m:  connection.parseMesage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
@@ -317,12 +317,12 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			wanted: []supportedValue{},
 		},
 		{
-			name:   "handle remove without value",
+			name: "handle remove without value",
 			fields: fields{
 				values: []supportedValue{},
 				conn:   &connection,
 			},
-			args:   args{
+			args: args{
 				em: nil,
 				c:  &connection,
 				m:  connection.parseMesage(":server 005 nick -AWAYLEN=500 :are supported by this server"),

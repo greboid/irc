@@ -13,12 +13,13 @@ import (
 	"log"
 )
 
-func NewGrpcServer(conn *irc.Connection, eventManager *irc.EventManager, rpcPort int, plugins []Plugin) GrpcServer {
+func NewGrpcServer(conn *irc.Connection, eventManager *irc.EventManager, rpcPort int, plugins []Plugin, webPort int) GrpcServer {
 	return GrpcServer{
 		conn:         conn,
 		eventManager: eventManager,
 		rpcPort:      rpcPort,
 		plugins:      plugins,
+		webPort:      webPort,
 	}
 }
 
@@ -27,6 +28,7 @@ type GrpcServer struct {
 	eventManager *irc.EventManager
 	rpcPort      int
 	plugins      []Plugin
+	webPort      int
 }
 
 func (s *GrpcServer) StartGRPC() {
@@ -44,7 +46,12 @@ func (s *GrpcServer) StartGRPC() {
 		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
+	httpsServer := NewHttpServer(s.webPort, s.plugins)
 	RegisterIRCPluginServer(grpcServer, &pluginServer{s.conn, s.eventManager})
+	RegisterHTTPPluginServer(grpcServer, httpsServer)
+	log.Printf("Starting webserver")
+	httpsServer.Start()
+	log.Printf("Starting RPC server")
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Printf("Error listening: %s", err.Error())

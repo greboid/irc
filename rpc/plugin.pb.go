@@ -227,12 +227,204 @@ func (m *Empty) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
+type Route struct {
+	Prefix               string   `protobuf:"bytes,1,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Route) Reset()         { *m = Route{} }
+func (m *Route) String() string { return proto.CompactTextString(m) }
+func (*Route) ProtoMessage()    {}
+func (*Route) Descriptor() ([]byte, []int) {
+	return fileDescriptor_22a625af4bc1cc87, []int{5}
+}
+
+func (m *Route) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Route.Unmarshal(m, b)
+}
+func (m *Route) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Route.Marshal(b, m, deterministic)
+}
+func (m *Route) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Route.Merge(m, src)
+}
+func (m *Route) XXX_Size() int {
+	return xxx_messageInfo_Route.Size(m)
+}
+func (m *Route) XXX_DiscardUnknown() {
+	xxx_messageInfo_Route.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Route proto.InternalMessageInfo
+
+func (m *Route) GetPrefix() string {
+	if m != nil {
+		return m.Prefix
+	}
+	return ""
+}
+
+type HttpRequest struct {
+	Header               []*HttpHeader `protobuf:"bytes,1,rep,name=header,proto3" json:"header,omitempty"`
+	Body                 []byte        `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *HttpRequest) Reset()         { *m = HttpRequest{} }
+func (m *HttpRequest) String() string { return proto.CompactTextString(m) }
+func (*HttpRequest) ProtoMessage()    {}
+func (*HttpRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_22a625af4bc1cc87, []int{6}
+}
+
+func (m *HttpRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HttpRequest.Unmarshal(m, b)
+}
+func (m *HttpRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HttpRequest.Marshal(b, m, deterministic)
+}
+func (m *HttpRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HttpRequest.Merge(m, src)
+}
+func (m *HttpRequest) XXX_Size() int {
+	return xxx_messageInfo_HttpRequest.Size(m)
+}
+func (m *HttpRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_HttpRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HttpRequest proto.InternalMessageInfo
+
+func (m *HttpRequest) GetHeader() []*HttpHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *HttpRequest) GetBody() []byte {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+type HttpResponse struct {
+	Header               []*HttpHeader `protobuf:"bytes,1,rep,name=header,proto3" json:"header,omitempty"`
+	Body                 []byte        `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	Status               int32         `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *HttpResponse) Reset()         { *m = HttpResponse{} }
+func (m *HttpResponse) String() string { return proto.CompactTextString(m) }
+func (*HttpResponse) ProtoMessage()    {}
+func (*HttpResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_22a625af4bc1cc87, []int{7}
+}
+
+func (m *HttpResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HttpResponse.Unmarshal(m, b)
+}
+func (m *HttpResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HttpResponse.Marshal(b, m, deterministic)
+}
+func (m *HttpResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HttpResponse.Merge(m, src)
+}
+func (m *HttpResponse) XXX_Size() int {
+	return xxx_messageInfo_HttpResponse.Size(m)
+}
+func (m *HttpResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_HttpResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HttpResponse proto.InternalMessageInfo
+
+func (m *HttpResponse) GetHeader() []*HttpHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *HttpResponse) GetBody() []byte {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+func (m *HttpResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+type HttpHeader struct {
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *HttpHeader) Reset()         { *m = HttpHeader{} }
+func (m *HttpHeader) String() string { return proto.CompactTextString(m) }
+func (*HttpHeader) ProtoMessage()    {}
+func (*HttpHeader) Descriptor() ([]byte, []int) {
+	return fileDescriptor_22a625af4bc1cc87, []int{8}
+}
+
+func (m *HttpHeader) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HttpHeader.Unmarshal(m, b)
+}
+func (m *HttpHeader) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HttpHeader.Marshal(b, m, deterministic)
+}
+func (m *HttpHeader) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HttpHeader.Merge(m, src)
+}
+func (m *HttpHeader) XXX_Size() int {
+	return xxx_messageInfo_HttpHeader.Size(m)
+}
+func (m *HttpHeader) XXX_DiscardUnknown() {
+	xxx_messageInfo_HttpHeader.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HttpHeader proto.InternalMessageInfo
+
+func (m *HttpHeader) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *HttpHeader) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*ChannelMessage)(nil), "rpc.ChannelMessage")
 	proto.RegisterType((*RawMessage)(nil), "rpc.RawMessage")
 	proto.RegisterType((*Error)(nil), "rpc.Error")
 	proto.RegisterType((*Channel)(nil), "rpc.Channel")
 	proto.RegisterType((*Empty)(nil), "rpc.Empty")
+	proto.RegisterType((*Route)(nil), "rpc.Route")
+	proto.RegisterType((*HttpRequest)(nil), "rpc.HttpRequest")
+	proto.RegisterType((*HttpResponse)(nil), "rpc.HttpResponse")
+	proto.RegisterType((*HttpHeader)(nil), "rpc.HttpHeader")
 }
 
 func init() {
@@ -240,23 +432,33 @@ func init() {
 }
 
 var fileDescriptor_22a625af4bc1cc87 = []byte{
-	// 253 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x51, 0x4f, 0x4b, 0xc3, 0x30,
-	0x14, 0x6f, 0xdc, 0xba, 0xb2, 0x9f, 0x63, 0xc2, 0x13, 0xa4, 0x0c, 0x84, 0x99, 0x83, 0x78, 0xaa,
-	0xa2, 0x82, 0x77, 0xc7, 0x0e, 0x1e, 0x04, 0xe9, 0x51, 0xbc, 0xd4, 0x1a, 0xea, 0x60, 0x4d, 0x43,
-	0xd2, 0x21, 0x7e, 0x48, 0xbf, 0x93, 0x34, 0x4d, 0x30, 0x2b, 0xb2, 0xdb, 0xfb, 0xfd, 0xcb, 0x7b,
-	0x2f, 0x0f, 0x33, 0xb5, 0xdd, 0x55, 0x1b, 0x99, 0x29, 0xdd, 0xb4, 0x0d, 0x8d, 0xb4, 0x2a, 0xf9,
-	0x1b, 0xe6, 0xab, 0xcf, 0x42, 0x4a, 0xb1, 0x7d, 0x16, 0xc6, 0x14, 0x95, 0xa0, 0x14, 0x49, 0xd9,
-	0x33, 0x29, 0x5b, 0xb2, 0xab, 0x69, 0xee, 0x61, 0xa7, 0xd4, 0xbd, 0x29, 0x3d, 0xea, 0x15, 0x07,
-	0xe9, 0x0c, 0x13, 0xd3, 0xec, 0x74, 0x29, 0xd2, 0x91, 0x15, 0x1c, 0xe2, 0x97, 0x40, 0x5e, 0x7c,
-	0x05, 0x2f, 0xfb, 0x3c, 0xdb, 0xcb, 0xf3, 0x0b, 0xc4, 0x6b, 0xad, 0x1b, 0x7d, 0xc0, 0x72, 0x8e,
-	0xc4, 0x0d, 0x4a, 0x84, 0xb1, 0x2c, 0x6a, 0xef, 0xb0, 0x35, 0x4f, 0x10, 0xaf, 0x6b, 0xd5, 0x7e,
-	0xdf, 0xfe, 0x30, 0x4c, 0x9f, 0xf2, 0xd5, 0x8b, 0xdd, 0x94, 0x96, 0x18, 0xab, 0x8d, 0xac, 0x08,
-	0x99, 0x56, 0x65, 0x66, 0x1d, 0x8b, 0xa0, 0xe6, 0x11, 0x3d, 0x80, 0x8c, 0x90, 0x1f, 0x83, 0x4f,
-	0x38, 0xb5, 0x9e, 0x7d, 0xd2, 0x07, 0xbb, 0x41, 0x79, 0x44, 0xd7, 0x98, 0x77, 0xc1, 0x60, 0xbf,
-	0x13, 0xab, 0xff, 0x11, 0x83, 0xc0, 0x3d, 0x8e, 0x2b, 0xd1, 0x3a, 0xcd, 0xd0, 0x2c, 0x6c, 0xb1,
-	0xf8, 0xaf, 0x21, 0x8f, 0x6e, 0xd8, 0x63, 0xfc, 0xda, 0xdd, 0xe9, 0x7d, 0x62, 0x6f, 0x76, 0xf7,
-	0x1b, 0x00, 0x00, 0xff, 0xff, 0x5c, 0x7e, 0x3b, 0x1e, 0xc3, 0x01, 0x00, 0x00,
+	// 410 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xdf, 0xaf, 0xd2, 0x30,
+	0x14, 0x5e, 0x1d, 0x83, 0x70, 0x98, 0x88, 0xd5, 0x98, 0x85, 0xc4, 0x88, 0x7d, 0x50, 0x7c, 0x41,
+	0x82, 0x24, 0xbc, 0x4b, 0x48, 0xd0, 0xc4, 0x84, 0x34, 0x3c, 0x19, 0x5f, 0xc6, 0x38, 0x8e, 0x45,
+	0xd8, 0x6a, 0xdb, 0xa9, 0xfc, 0x91, 0xfe, 0x4f, 0x66, 0x6d, 0x27, 0x83, 0xdc, 0xdc, 0x97, 0xfb,
+	0x76, 0xbe, 0x73, 0xbe, 0xf3, 0xf3, 0x6b, 0x21, 0x14, 0xc7, 0x32, 0xcd, 0xf2, 0x89, 0x90, 0x85,
+	0x2e, 0xa8, 0x2f, 0x45, 0xc2, 0xbe, 0x41, 0x7f, 0x79, 0x88, 0xf3, 0x1c, 0x8f, 0x5f, 0x50, 0xa9,
+	0x38, 0x45, 0x1a, 0x41, 0x27, 0xb1, 0x9e, 0x88, 0x8c, 0xc8, 0xb8, 0xcb, 0x6b, 0x58, 0x45, 0x4e,
+	0x96, 0x14, 0x3d, 0xb2, 0x11, 0x07, 0xe9, 0x0b, 0x68, 0xab, 0xa2, 0x94, 0x09, 0x46, 0xbe, 0x09,
+	0x38, 0xc4, 0xde, 0x00, 0xf0, 0xf8, 0x77, 0xa3, 0x72, 0x9d, 0x4f, 0xae, 0xf2, 0xd9, 0x6b, 0x08,
+	0x56, 0x52, 0x16, 0xf2, 0x1e, 0xca, 0x4b, 0xe8, 0xb8, 0x41, 0x29, 0x85, 0x56, 0x1e, 0x9f, 0x6a,
+	0x86, 0xb1, 0x59, 0x07, 0x82, 0xd5, 0x49, 0xe8, 0x33, 0x7b, 0x05, 0x01, 0x2f, 0x4a, 0x6d, 0x66,
+	0x12, 0x12, 0xbf, 0x67, 0x7f, 0x1c, 0xcf, 0x21, 0xf6, 0x19, 0x7a, 0x6b, 0xad, 0x05, 0xc7, 0x9f,
+	0x25, 0x2a, 0x4d, 0xdf, 0x42, 0xfb, 0x80, 0xf1, 0x1e, 0x65, 0x44, 0x46, 0xfe, 0xb8, 0x37, 0x7b,
+	0x32, 0x91, 0x22, 0x99, 0x54, 0x8c, 0xb5, 0x71, 0x73, 0x17, 0xae, 0xba, 0xee, 0x8a, 0xfd, 0xd9,
+	0xac, 0x1e, 0x72, 0x63, 0xb3, 0x04, 0x42, 0x5b, 0x4b, 0x89, 0x22, 0x57, 0xf8, 0xa0, 0x62, 0xe6,
+	0x88, 0x3a, 0xd6, 0xa5, 0x32, 0x47, 0x0c, 0xb8, 0x43, 0x6c, 0x0e, 0x70, 0xa9, 0x40, 0x07, 0xe0,
+	0xff, 0xc0, 0xb3, 0xdb, 0xa9, 0x32, 0xe9, 0x73, 0x08, 0x7e, 0xc5, 0xc7, 0xb2, 0x16, 0xc5, 0x82,
+	0xd9, 0x5f, 0x02, 0xdd, 0x4f, 0x7c, 0xb9, 0x31, 0x8a, 0xd3, 0x11, 0xb4, 0x44, 0x96, 0xa7, 0x14,
+	0xcc, 0x40, 0xe6, 0x52, 0xc3, 0x86, 0xcd, 0x3c, 0xba, 0x00, 0xaa, 0x30, 0xdf, 0xdf, 0x3c, 0x86,
+	0x67, 0x86, 0x73, 0xed, 0xac, 0x13, 0x2b, 0xc1, 0x98, 0x47, 0xdf, 0x43, 0xbf, 0x4a, 0x6c, 0xe8,
+	0x6c, 0xb7, 0xbe, 0x38, 0x6e, 0x12, 0xe6, 0xd0, 0x4b, 0x51, 0xbb, 0x98, 0xa2, 0x61, 0xb3, 0xc5,
+	0xf0, 0xae, 0x86, 0xcc, 0x9b, 0x92, 0x99, 0x00, 0x58, 0x6f, 0xb7, 0x1b, 0xb7, 0xcf, 0x3b, 0x78,
+	0x2c, 0x31, 0xcd, 0x94, 0x46, 0x69, 0xd5, 0xb6, 0x2d, 0x8c, 0x7d, 0xd3, 0x6e, 0x01, 0x90, 0xa2,
+	0xae, 0xe5, 0x7e, 0xfa, 0x5f, 0x91, 0x5a, 0xb4, 0xe1, 0xa0, 0xe1, 0x32, 0x24, 0xe6, 0x8d, 0xc9,
+	0x94, 0x7c, 0x0c, 0xbe, 0x56, 0x3f, 0x64, 0xd7, 0x36, 0xbf, 0xe5, 0xc3, 0xbf, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xc6, 0xe3, 0xc3, 0x59, 0x3d, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -470,6 +672,147 @@ var _IRCPlugin_serviceDesc = grpc.ServiceDesc{
 			StreamName:    "getMessages",
 			Handler:       _IRCPlugin_GetMessages_Handler,
 			ServerStreams: true,
+		},
+	},
+	Metadata: "plugin.proto",
+}
+
+// HTTPPluginClient is the client API for HTTPPlugin service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type HTTPPluginClient interface {
+	RegisterRoute(ctx context.Context, in *Route, opts ...grpc.CallOption) (*Error, error)
+	GetRequest(ctx context.Context, opts ...grpc.CallOption) (HTTPPlugin_GetRequestClient, error)
+}
+
+type hTTPPluginClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewHTTPPluginClient(cc grpc.ClientConnInterface) HTTPPluginClient {
+	return &hTTPPluginClient{cc}
+}
+
+func (c *hTTPPluginClient) RegisterRoute(ctx context.Context, in *Route, opts ...grpc.CallOption) (*Error, error) {
+	out := new(Error)
+	err := c.cc.Invoke(ctx, "/rpc.HTTPPlugin/registerRoute", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hTTPPluginClient) GetRequest(ctx context.Context, opts ...grpc.CallOption) (HTTPPlugin_GetRequestClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_HTTPPlugin_serviceDesc.Streams[0], "/rpc.HTTPPlugin/getRequest", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &hTTPPluginGetRequestClient{stream}
+	return x, nil
+}
+
+type HTTPPlugin_GetRequestClient interface {
+	Send(*HttpResponse) error
+	Recv() (*HttpRequest, error)
+	grpc.ClientStream
+}
+
+type hTTPPluginGetRequestClient struct {
+	grpc.ClientStream
+}
+
+func (x *hTTPPluginGetRequestClient) Send(m *HttpResponse) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *hTTPPluginGetRequestClient) Recv() (*HttpRequest, error) {
+	m := new(HttpRequest)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// HTTPPluginServer is the server API for HTTPPlugin service.
+type HTTPPluginServer interface {
+	RegisterRoute(context.Context, *Route) (*Error, error)
+	GetRequest(HTTPPlugin_GetRequestServer) error
+}
+
+// UnimplementedHTTPPluginServer can be embedded to have forward compatible implementations.
+type UnimplementedHTTPPluginServer struct {
+}
+
+func (*UnimplementedHTTPPluginServer) RegisterRoute(ctx context.Context, req *Route) (*Error, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterRoute not implemented")
+}
+func (*UnimplementedHTTPPluginServer) GetRequest(srv HTTPPlugin_GetRequestServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetRequest not implemented")
+}
+
+func RegisterHTTPPluginServer(s *grpc.Server, srv HTTPPluginServer) {
+	s.RegisterService(&_HTTPPlugin_serviceDesc, srv)
+}
+
+func _HTTPPlugin_RegisterRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Route)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HTTPPluginServer).RegisterRoute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.HTTPPlugin/RegisterRoute",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HTTPPluginServer).RegisterRoute(ctx, req.(*Route))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HTTPPlugin_GetRequest_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(HTTPPluginServer).GetRequest(&hTTPPluginGetRequestServer{stream})
+}
+
+type HTTPPlugin_GetRequestServer interface {
+	Send(*HttpRequest) error
+	Recv() (*HttpResponse, error)
+	grpc.ServerStream
+}
+
+type hTTPPluginGetRequestServer struct {
+	grpc.ServerStream
+}
+
+func (x *hTTPPluginGetRequestServer) Send(m *HttpRequest) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *hTTPPluginGetRequestServer) Recv() (*HttpResponse, error) {
+	m := new(HttpResponse)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+var _HTTPPlugin_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpc.HTTPPlugin",
+	HandlerType: (*HTTPPluginServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "registerRoute",
+			Handler:    _HTTPPlugin_RegisterRoute_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "getRequest",
+			Handler:       _HTTPPlugin_GetRequest_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "plugin.proto",

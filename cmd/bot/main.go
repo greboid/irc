@@ -24,6 +24,7 @@ var (
 	RPCPort       = flag.Int("rpc-port", 8001, "gRPC server port")
 	PluginsString = flag.String("plugins", "", "Comma separated list of plugins, name=token")
 	FloodProfile  = flag.String("flood-profile", "restrictive", "Flood profile: restrictive, unlimited")
+	WebPort       = flag.Int("web-port", 8000, "Web port for http server")
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	eventManager := irc.NewEventManager()
 	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
 		*FloodProfile, eventManager)
-	rpcServer := rpc.NewGrpcServer(connection, eventManager, *RPCPort, Plugins)
+	rpcServer := rpc.NewGrpcServer(connection, eventManager, *RPCPort, Plugins, *WebPort)
 	log.Print("Adding callbacks")
 	addBotCallbacks(connection)
 	go rpcServer.StartGRPC()

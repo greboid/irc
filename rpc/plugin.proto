@@ -30,4 +30,27 @@ service IRCPlugin {
     rpc getMessages(Channel) returns (stream ChannelMessage) {}
 }
 
+message Route {
+    string prefix = 1;
+}
 
+message HttpRequest {
+    repeated HttpHeader header = 1;
+    bytes body = 2;
+}
+
+message HttpResponse {
+    repeated HttpHeader header = 1;
+    bytes body = 2;
+    int32 status = 3;
+}
+
+message HttpHeader {
+    string key = 1;
+    string value = 2;
+}
+
+service HTTPPlugin {
+    rpc registerRoute(Route) returns (Error) {};
+    rpc getRequest(stream HttpResponse) returns (stream HttpRequest) {};
+}

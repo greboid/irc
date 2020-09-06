@@ -13,13 +13,10 @@ import (
 	"github.com/kouhin/envflag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
 	"strings"
-	"time"
 )
 
 var (
@@ -28,7 +25,6 @@ var (
 	RPCToken     = flag.String("rpc-token", "", "gRPC authentication token")
 	Channel      = flag.String("channel", "", "Channel to send messages to")
 	GithubSecret = flag.String("github-secret", "", "Github secret for validating webhooks")
-	WebPort      = flag.Int("web-port", 8000, "Web port for receiving github webhooks")
 )
 
 type github struct {
@@ -47,8 +43,11 @@ func main() {
 	}
 	github.client = client
 	log.Printf("Starting github web server")
-	github.doWeb()
-
+	err = github.doWeb()
+	if err != nil {
+		log.Panicf("Error handling web: %s", err.Error())
+	}
+	log.Printf("exiting")
 }
 
 func (g *github) doRPC() (rpc.IRCPluginClient, error) {
@@ -62,52 +61,64 @@ func (g *github) doRPC() (rpc.IRCPluginClient, error) {
 	return client, nil
 }
 
-func (g *github) doWeb() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/github", g.handleGithub)
-	server := http.Server{
-		Addr:    fmt.Sprintf(":%d", *WebPort),
-		Handler: mux,
+func (g *github) doWeb() error {
+	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *RPCHost, *RPCPort), grpc.WithTransportCredentials(creds))
+	if err != nil {
+		return err
 	}
-	go func() {
-		log.Print(server.ListenAndServe())
-	}()
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, os.Kill)
-	log.Printf("Waiting for stop")
-	<-stop
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Unable to shutdown: %s", err.Error())
+	client := rpc.NewHTTPPluginClient(conn)
+	_, err = client.RegisterRoute(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.Route{Prefix: "github"})
+	if err != nil {
+		return err
+	}
+	stream, err := client.GetRequest(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken))
+	for {
+		request, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return nil
+		}
+		response := g.handleGithub(request)
+		err = stream.Send(response)
+		if err != nil {
+			return err
+		}
 	}
 }
 
-func (g *github) handleGithub(writer http.ResponseWriter, request *http.Request) {
-	bodyBytes, err := ioutil.ReadAll(request.Body)
-	defer func() { _ = request.Body.Close() }()
-	if err != nil {
-		log.Printf("Error reading body: %s", err.Error())
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	eventType := request.Header.Get("X-GitHub-Event")
-	header := strings.SplitN(request.Header.Get("X-Hub-Signature"), "=", 2)
+func (g *github) handleGithub(request *rpc.HttpRequest) *rpc.HttpResponse {
+	headers := rpc.ConvertFromRPCHeaders(request.Header)
+	eventType := headers.Get("X-GitHub-Event")
+	header := strings.SplitN(headers.Get("X-Hub-Signature"), "=", 2)
 	if header[0] != "sha1" {
 		log.Printf("Error: %s", "Bad header")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
+		return &rpc.HttpResponse{
+			Header:               nil,
+			Body:                 []byte("Bad headers"),
+			Status:               http.StatusInternalServerError,
+		}
 	}
-	if !CheckGithubSecret(bodyBytes, header[1], *GithubSecret) {
+	if !CheckGithubSecret(request.Body, header[1], *GithubSecret) {
 		log.Printf("Error: %s", "Bad hash")
-		writer.WriteHeader(http.StatusBadRequest)
+		return &rpc.HttpResponse{
+			Header:               nil,
+			Body:                 []byte("Bad hash"),
+			Status:               http.StatusBadRequest,
+		}
 	}
-	_, _ = writer.Write([]byte("Delivered."))
-	webhookHandler := githubWebhookHandler{
-		client: g.client,
-	}
-	if err := webhookHandler.handleWebhook(eventType, bodyBytes); err != nil {
-		_, _ = writer.Write([]byte("Error."))
+	go func() {
+		webhookHandler := githubWebhookHandler{
+			client: g.client,
+		}
+		_ = webhookHandler.handleWebhook(eventType, request.Body)
+	}()
+	return &rpc.HttpResponse{
+		Header:               nil,
+		Body:                 []byte("Delivered"),
+		Status:               http.StatusOK,
 	}
 }
 
