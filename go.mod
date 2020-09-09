@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/golang/protobuf v1.4.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.1
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/imdario/mergo v0.3.11
 	github.com/kouhin/envflag v0.0.0-20150818174321-0e9a86061649
 	github.com/labstack/echo v3.3.10+incompatible
