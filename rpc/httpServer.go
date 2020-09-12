@@ -95,6 +95,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					Header: ConvertToRPCHeaders(request.Header),
 					Body:   body,
 					Path: request.URL.Path,
+					Method: request.Method,
 				})
 				if err != nil {
 					log.Printf("Unable to send to plugin")

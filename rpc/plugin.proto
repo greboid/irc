@@ -38,6 +38,7 @@ message HttpRequest {
     repeated HttpHeader header = 1;
     bytes body = 2;
     string path = 3;
+    string method = 4;
 }
 
 message HttpResponse {
