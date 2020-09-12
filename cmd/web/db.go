@@ -11,17 +11,7 @@ type DB struct {
 	Db   *buntdb.DB
 }
 
-type Plugin struct {
-	Name  string
-	Token string
-}
-
-type User struct {
-	Name  string
-	Token string
-}
-
-func New(path string) (*DB, error) {
+func NewDB(path string) (*DB, error) {
 	log.Print("Initialising database")
 	db := &DB{
 		path: path,
@@ -62,25 +52,12 @@ func (db *DB) getKey(key string) (string, error) {
 	return value, err
 }
 
-func (db *DB) getUsers() []User {
+func (db *DB) getUsers() []string {
 	dataString, err := db.getKey("users")
 	if err != nil {
 		return nil
 	}
-	var data []User
-	err = json.Unmarshal([]byte(dataString), &data)
-	if err != nil {
-		return nil
-	}
-	return data
-}
-
-func (db *DB) getPlugins() []Plugin {
-	dataString, err := db.getKey("plugins")
-	if err != nil {
-		return nil
-	}
-	var data []Plugin
+	var data []string
 	err = json.Unmarshal([]byte(dataString), &data)
 	if err != nil {
 		return nil
@@ -91,53 +68,20 @@ func (db *DB) getPlugins() []Plugin {
 func (db *DB) CheckUser(key string) bool {
 	users := db.getUsers()
 	for _, user := range users {
-		if user.Token == key {
+		if user == key {
 			return true
 		}
 	}
 	return false
 }
 
-func (db *DB) CheckPlugin(key string) bool {
-	plugins := db.getPlugins()
-	for _, plugin := range plugins {
-		if plugin.Token == key {
-			return true
-		}
-	}
-	return false
-}
-
-func (db *DB) CreateUser(name string, token string) error {
-	user := User{
-		Name:  name,
-		Token: token,
-	}
-	users := append(db.getUsers(), user)
-	value, err := json.Marshal(&users)
+func (db *DB) CreateUser(token string) error {
+	tokens := append(db.getUsers(), token)
+	value, err := json.Marshal(&tokens)
 	if err != nil {
 		return err
 	}
 	return db.setKey("users", string(value))
-}
-
-func (db *DB) CreatePlugin(name string, token string) error {
-	plugin := Plugin{
-		Name:  name,
-		Token: token,
-	}
-	plugins := db.getPlugins()
-	for _, plugin := range plugins {
-		if plugin.Token == token {
-			return nil
-		}
-	}
-	plugins = append(plugins, plugin)
-	value, err := json.Marshal(plugins)
-	if err != nil {
-		return err
-	}
-	return db.setKey("plugins", string(value))
 }
 
 func (db *DB) InitDB() {
@@ -146,4 +90,19 @@ func (db *DB) InitDB() {
 		log.Fatal(err)
 	}
 	db.Db = instance
+}
+
+func (db *DB) DeleteUser(token string) error {
+	tokens := db.getUsers()
+	newTokens := make([]string, 0)
+	for index := range tokens {
+		if tokens[index] != token {
+			newTokens = append(newTokens, tokens[index])
+		}
+	}
+	value, err := json.Marshal(&newTokens)
+	if err != nil {
+		return err
+	}
+	return db.setKey("users", string(value))
 }
