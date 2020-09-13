@@ -52,12 +52,12 @@ func (db *DB) getKey(key string) (string, error) {
 func (db *DB) getUsers() []string {
 	dataString, err := db.getKey("users")
 	if err != nil {
-		return nil
+		return []string{}
 	}
 	var data []string
 	err = json.Unmarshal([]byte(dataString), &data)
 	if err != nil {
-		return nil
+		return []string{}
 	}
 	return data
 }
