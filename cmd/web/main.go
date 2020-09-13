@@ -185,17 +185,19 @@ func (p *webPlugin) listKeys() *rpc.HttpResponse {
 
 func (p *webPlugin) addKey(key string) *rpc.HttpResponse {
 	users := p.db.getUsers()
-	found := false
-	for index := range users {
-		if users[index] == key {
-			found = true
-			break
+	if len(users) > 0 {
+		found := false
+		for index := range users {
+			if users[index] == key {
+				found = true
+				break
+			}
 		}
-	}
-	if found {
-		return &rpc.HttpResponse{
-			Body:   []byte("User exists"),
-			Status: http.StatusNoContent,
+		if found {
+			return &rpc.HttpResponse{
+				Body:   []byte("User exists"),
+				Status: http.StatusNoContent,
+			}
 		}
 	}
 	err := p.db.CreateUser(key)
