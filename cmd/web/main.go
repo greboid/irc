@@ -23,8 +23,8 @@ var (
 	RPCToken = flag.String("rpc-token", "", "gRPC authentication token")
 	Channel  = flag.String("channel", "", "Channel to send messages to")
 
-	DBPath   = flag.String("db-path", "/data/db", "Path to token database")
-	AdminKey = flag.String("admin-key", "", "Admin key for API")
+	DBPath        = flag.String("db-path", "/data/db", "Path to token database")
+	AdminKey      = flag.String("admin-key", "", "Admin key for API")
 	WebPathPrefix = "webhook"
 )
 
@@ -52,7 +52,7 @@ func main() {
 	plugin := webPlugin{
 		db:       db,
 		adminKey: *AdminKey,
-		RPCConn: conn,
+		RPCConn:  conn,
 	}
 	plugin.run()
 }
@@ -102,8 +102,8 @@ func (p *webPlugin) handleWebhook(request *rpc.HttpRequest) *rpc.HttpResponse {
 	admin, err := p.checkAuth(request)
 	if err != nil {
 		return &rpc.HttpResponse{
-			Body:                 []byte(err.Error()),
-			Status:               http.StatusUnauthorized,
+			Body:   []byte(err.Error()),
+			Status: http.StatusUnauthorized,
 		}
 	}
 	path := strings.ToLower(request.Path)
@@ -119,8 +119,8 @@ func (p *webPlugin) handleWebhook(request *rpc.HttpRequest) *rpc.HttpResponse {
 		return p.sendMessage(request, client)
 	}
 	return &rpc.HttpResponse{
-		Body:                 []byte("Unknown"),
-		Status:               http.StatusBadRequest,
+		Body:   []byte("Unknown"),
+		Status: http.StatusBadRequest,
 	}
 }
 
@@ -150,8 +150,8 @@ func (p *webPlugin) handleAdminKeys(request *rpc.HttpRequest) *rpc.HttpResponse 
 		return p.deleteKey(body.Message)
 	default:
 		return &rpc.HttpResponse{
-			Body:                 []byte("Unknown action"),
-			Status:               http.StatusBadRequest,
+			Body:   []byte("Unknown action"),
+			Status: http.StatusBadRequest,
 		}
 	}
 }
@@ -161,13 +161,13 @@ func (p *webPlugin) listKeys() *rpc.HttpResponse {
 	userJson, err := json.Marshal(&users)
 	if err != nil {
 		return &rpc.HttpResponse{
-			Body:                 []byte("Unable to get keys"),
-			Status:               http.StatusInternalServerError,
+			Body:   []byte("Unable to get keys"),
+			Status: http.StatusInternalServerError,
 		}
 	}
 	return &rpc.HttpResponse{
-		Body:                 userJson,
-		Status:               http.StatusBadRequest,
+		Body:   userJson,
+		Status: http.StatusBadRequest,
 	}
 }
 
@@ -182,8 +182,8 @@ func (p *webPlugin) addKey(key string) *rpc.HttpResponse {
 	}
 	if found {
 		return &rpc.HttpResponse{
-			Body:                 []byte("User exists"),
-			Status:               http.StatusNoContent,
+			Body:   []byte("User exists"),
+			Status: http.StatusNoContent,
 		}
 	}
 	err := p.db.CreateUser(key)
@@ -194,8 +194,8 @@ func (p *webPlugin) addKey(key string) *rpc.HttpResponse {
 		}
 	}
 	return &rpc.HttpResponse{
-		Body:                 []byte("User added"),
-		Status:               http.StatusOK,
+		Body:   []byte("User added"),
+		Status: http.StatusOK,
 	}
 }
 
@@ -210,8 +210,8 @@ func (p *webPlugin) deleteKey(key string) *rpc.HttpResponse {
 	}
 	if !found {
 		return &rpc.HttpResponse{
-			Body:                 []byte("User not found"),
-			Status:               http.StatusNotFound,
+			Body:   []byte("User not found"),
+			Status: http.StatusNotFound,
 		}
 	}
 	err := p.db.DeleteUser(key)
@@ -222,8 +222,8 @@ func (p *webPlugin) deleteKey(key string) *rpc.HttpResponse {
 		}
 	}
 	return &rpc.HttpResponse{
-		Body:                 []byte("User deleted"),
-		Status:               http.StatusOK,
+		Body:   []byte("User deleted"),
+		Status: http.StatusOK,
 	}
 }
 
@@ -232,8 +232,8 @@ func (p *webPlugin) sendMessage(request *rpc.HttpRequest, client rpc.IRCPluginCl
 	err := json.Unmarshal(request.Body, body)
 	if err != nil {
 		return &rpc.HttpResponse{
-			Body:                 []byte("Unable to decode"),
-			Status:               http.StatusInternalServerError,
+			Body:   []byte("Unable to decode"),
+			Status: http.StatusInternalServerError,
 		}
 	}
 	_, _ = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
@@ -241,8 +241,8 @@ func (p *webPlugin) sendMessage(request *rpc.HttpRequest, client rpc.IRCPluginCl
 		Message: body.Message,
 	})
 	return &rpc.HttpResponse{
-		Body:                 []byte("Delivered"),
-		Status:               http.StatusOK,
+		Body:   []byte("Delivered"),
+		Status: http.StatusOK,
 	}
 }
 

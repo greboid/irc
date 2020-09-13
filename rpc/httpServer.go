@@ -94,7 +94,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 				err = stream.Send(&HttpRequest{
 					Header: ConvertToRPCHeaders(request.Header),
 					Body:   body,
-					Path: request.URL.Path,
+					Path:   request.URL.Path,
 					Method: request.Method,
 				})
 				if err != nil {
