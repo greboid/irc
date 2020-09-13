@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"log"
 	"strings"
 )
 
@@ -33,7 +32,6 @@ func (h *supportParser) handleSupport(em *EventManager, c *Connection, m *Messag
 	} else {
 		tokenised = h.tokenise(m.Params[1 : len(m.Params)-1])
 	}
-	log.Printf("Tokenused: %v", tokenised)
 	for index := range tokenised {
 		value := tokenised[index]
 		if strings.HasPrefix(value.name, "-") {
@@ -59,7 +57,6 @@ func (h *supportParser) tokenise(input []string) []supportedValue {
 }
 
 func (h *supportParser) remove(s []supportedValue, i int) []supportedValue {
-	log.Printf("%d, %d", len(s), i)
 	if i >= len(s) || i < 0 {
 		return s
 	}
