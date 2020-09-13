@@ -167,7 +167,11 @@ func (p *webPlugin) listKeys() *rpc.HttpResponse {
 	}
 	return &rpc.HttpResponse{
 		Body:   userJson,
-		Status: http.StatusBadRequest,
+		Header: []*rpc.HttpHeader{{
+			Key:                  "Content-Type",
+			Value:                "application/json",
+		}},
+		Status: http.StatusOK,
 	}
 }
 
@@ -236,10 +240,16 @@ func (p *webPlugin) sendMessage(request *rpc.HttpRequest, client rpc.IRCPluginCl
 			Status: http.StatusInternalServerError,
 		}
 	}
-	_, _ = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
+	_, err = client.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", *RPCToken), &rpc.ChannelMessage{
 		Channel: *Channel,
 		Message: body.Message,
 	})
+	if err != nil {
+		return &rpc.HttpResponse{
+			Body:   []byte("Unable to send"),
+			Status: http.StatusInternalServerError,
+		}
+	}
 	return &rpc.HttpResponse{
 		Body:   []byte("Delivered"),
 		Status: http.StatusOK,

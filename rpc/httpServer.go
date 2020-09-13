@@ -89,7 +89,9 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 			if stream != nil {
 				body, err := ioutil.ReadAll(request.Body)
 				if err != nil {
+					log.Printf("Unable to read input")
 					writer.WriteHeader(http.StatusInternalServerError)
+					_, _ = writer.Write([]byte("Unable to read input"))
 				}
 				err = stream.Send(&HttpRequest{
 					Header: ConvertToRPCHeaders(request.Header),
@@ -99,6 +101,8 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 				})
 				if err != nil {
 					log.Printf("Unable to send to plugin")
+					writer.WriteHeader(http.StatusInternalServerError)
+					_, _ = writer.Write([]byte("Unable to send to handler"))
 					return
 				}
 				select {
@@ -108,12 +112,16 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					}
 					writer.WriteHeader(int(response.Status))
 					_, _ = writer.Write(response.Body)
-				case <-time.After(1 * time.Second):
-					log.Printf("Timeout waiting for plugin")
+				case <-time.After(5 * time.Second):
+					log.Printf("Timeout waiting for plugin: %s", request.URL.Path)
+					writer.WriteHeader(http.StatusGatewayTimeout)
+					_, _ = writer.Write([]byte("Timeout waiting for handler"))
 				}
 			}
 		}
 	}
+	writer.WriteHeader(http.StatusNotFound)
+	_, _ = writer.Write([]byte("Handler not found"))
 }
 
 func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
