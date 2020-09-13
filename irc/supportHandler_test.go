@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
 )
@@ -16,7 +17,9 @@ func TestNewSupportHandler(t *testing.T) {
 }
 
 func Test_supportParser_install(t *testing.T) {
-	conn := &Connection{}
+	conn := &Connection{
+		logger: zap.NewNop().Sugar(),
+	}
 	value := supportParser{}
 	value.install(conn)
 	if value.conn != conn {
