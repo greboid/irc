@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"github.com/greboid/irc/logger"
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
 	"time"
@@ -110,6 +112,7 @@ func Test_githubWebhookHandler_handleWebhook(t *testing.T) {
 			tt.client.finished = tt.finished
 			g := &githubWebhookHandler{
 				client: tt.client,
+				log: logger.CreateLogger(false),
 			}
 			var bodyBytes []byte
 			if tt.args.filename != "" {
@@ -159,6 +162,7 @@ func Test_githubWebhookHandler_sendMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &githubWebhookHandler{
 				client: tt.client,
+				log: zap.NewNop().Sugar(),
 			}
 			got := g.sendMessage(tt.messages)
 			if !reflect.DeepEqual(got, tt.wanted) {
