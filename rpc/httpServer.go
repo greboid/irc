@@ -92,6 +92,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					log.Printf("Unable to read input")
 					writer.WriteHeader(http.StatusInternalServerError)
 					_, _ = writer.Write([]byte("Unable to read input"))
+					return
 				}
 				err = stream.Send(&HttpRequest{
 					Header: ConvertToRPCHeaders(request.Header),
@@ -112,10 +113,12 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					}
 					writer.WriteHeader(int(response.Status))
 					_, _ = writer.Write(response.Body)
+					return
 				case <-time.After(5 * time.Second):
 					log.Printf("Timeout waiting for plugin: %s", request.URL.Path)
 					writer.WriteHeader(http.StatusGatewayTimeout)
 					_, _ = writer.Write([]byte("Timeout waiting for handler"))
+					return
 				}
 			}
 		}
