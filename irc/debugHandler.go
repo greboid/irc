@@ -1,16 +1,17 @@
 package irc
 
 import (
-	"log"
+	"go.uber.org/zap"
 )
 
 type debugHandler struct {
-	debug bool
+	debug  bool
+	logger *zap.SugaredLogger
 }
 
-func NewDebugHandler(debug bool) *debugHandler {
+func NewDebugHandler(logger *zap.SugaredLogger) *debugHandler {
 	return &debugHandler{
-		debug: debug,
+		logger: logger,
 	}
 }
 
@@ -27,13 +28,9 @@ func (h *debugHandler) handleRawMessage(c *Connection, m RawMessage) {
 }
 
 func (h *debugHandler) handleMessage(_ *Connection, m RawMessage) {
-	if h.debug {
-		log.Printf(" IN | %s", m.message)
-	}
+	h.logger.Debugf(" IN | %s", m.message)
 }
 
 func (h *debugHandler) handleOutboundMessage(_ *Connection, m RawMessage) {
-	if h.debug {
-		log.Printf("OUT | %s", m.message)
-	}
+	h.logger.Debugf("OUT | %s", m.message)
 }

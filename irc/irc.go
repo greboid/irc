@@ -5,7 +5,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log"
+	"github.com/greboid/irc/logger"
+	"go.uber.org/zap"
 	"net"
 	"os"
 	"os/signal"
@@ -15,8 +16,10 @@ import (
 )
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	debug bool, floodProfile string, eventManager *EventManager) *Connection {
-	log.Print("Creating new IRC")
+	log *zap.SugaredLogger, floodProfile string, eventManager *EventManager) *Connection {
+	if log == nil {
+		log = logger.CreateLogger(false)
+	}
 	connection := &Connection{
 		ClientConfig: ClientConfig{
 			Server:   server,
@@ -30,10 +33,11 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 		SASLAuth:     useSasl,
 		SASLUser:     saslUser,
 		SASLPass:     saslPass,
-		Debug:        debug,
 		FloodProfile: floodProfile,
 		listeners:    eventManager,
+		logger:       log,
 	}
+	connection.logger.Info("Creating new IRC")
 	connection.Init()
 	return connection
 }
@@ -80,7 +84,7 @@ func (irc *Connection) miscLoop() {
 				irc.SendRawf("PING %d", time.Now().UnixNano())
 			}
 		case err := <-irc.errorChannel:
-			log.Printf("IRC Error occurred: %s", err.Error())
+			irc.logger.Errorf("IRC Error occurred: %s", err.Error())
 			irc.Finished <- true
 		case <-irc.signals:
 			go irc.doQuit()
@@ -114,7 +118,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 }
 
 func (irc *Connection) Init() {
-	log.Print("Initialising IRC")
+	irc.logger.Info("Initialising IRC")
 	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
@@ -130,7 +134,7 @@ func (irc *Connection) Init() {
 }
 
 func (irc *Connection) Connect() error {
-	log.Printf("Connecting to IRC: %s", irc.ClientConfig.Server)
+	irc.logger.Infof("Connecting to IRC: %s", irc.ClientConfig.Server)
 	var err error
 	if irc.ClientConfig.UseTLS {
 		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
@@ -148,10 +152,10 @@ func (irc *Connection) Connect() error {
 	go irc.writeLoop()
 	NewErrorHandler().install(irc)
 	NewPingHandler().install(irc.listeners, irc)
-	NewCapabilityHandler().install(irc.listeners, irc)
-	NewNickHandler(irc.ClientConfig.Nick).install(irc)
-	NewDebugHandler(irc.Debug).install(irc)
-	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass).Install(irc.listeners, irc)
+	NewCapabilityHandler(irc.logger).install(irc.listeners, irc)
+	NewNickHandler(irc.ClientConfig.Nick, irc.logger).install(irc)
+	NewDebugHandler(irc.logger).install(irc)
+	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass, irc.logger).Install(irc.listeners, irc)
 	NewSupportHandler().install(irc)
 	if len(irc.ClientConfig.Password) > 0 {
 		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
@@ -163,11 +167,11 @@ func (irc *Connection) Connect() error {
 }
 
 func (irc *Connection) Wait() {
-	log.Print("Waiting for IRC to finish")
+	irc.logger.Debugf("Waiting for IRC to finish")
 	<-irc.Finished
 	close(irc.writeChan)
 	_ = irc.socket.Close()
-	log.Print("IRC Finished")
+	irc.logger.Debugf("IRC Finished")
 }
 
 func (irc *Connection) ConnectAndWait() error {
@@ -200,7 +204,7 @@ func (irc *Connection) ConnectAndWaitWithRetry(maxRetries int) error {
 			retryDelay = 300
 		}
 		if err != nil {
-			log.Printf("Error connecting, retrying in %d", retryDelay)
+			irc.logger.Infof("Error connecting, retrying in %d", retryDelay)
 		} else {
 			return nil
 		}

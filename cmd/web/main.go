@@ -7,12 +7,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/greboid/irc/logger"
 	"github.com/greboid/irc/rpc"
 	"github.com/kouhin/envflag"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -22,6 +23,7 @@ var (
 	RPCPort  = flag.Int("rpc-port", 8001, "gRPC server port")
 	RPCToken = flag.String("rpc-token", "", "gRPC authentication token")
 	Channel  = flag.String("channel", "", "Channel to send messages to")
+	Debug    = flag.Bool("debug", false, "Show debugging info")
 
 	DBPath        = flag.String("db-path", "/data/db", "Path to token database")
 	AdminKey      = flag.String("admin-key", "", "Admin key for API")
@@ -33,15 +35,20 @@ type webPlugin struct {
 	adminKey string
 	RPCConn  *grpc.ClientConn
 	Channel  string
+	log      *zap.SugaredLogger
 }
 
 func main() {
+	log := logger.CreateLogger(*Debug)
+	log.Infof("Starting webhook plugin")
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
+		return
 	}
 	db, err := NewDB(*DBPath)
 	if err != nil {
 		log.Panicf("Unable to load config: %s", err.Error())
+		return
 	}
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *RPCHost, *RPCPort), grpc.WithTransportCredentials(creds))
@@ -53,6 +60,7 @@ func main() {
 		db:       db,
 		adminKey: *AdminKey,
 		RPCConn:  conn,
+		log:      log,
 	}
 	plugin.run()
 }
@@ -61,23 +69,23 @@ func (p *webPlugin) run() {
 	client := rpc.NewHTTPPluginClient(p.RPCConn)
 	stream, err := client.GetRequest(rpc.CtxWithTokenAndPath(context.Background(), "bearer", *RPCToken, WebPathPrefix))
 	if err != nil {
-		log.Printf("Unable to connect to RPC")
+		p.log.Errorf("Unable to connect to RPC")
 		return
 	}
 	for {
 		request, err := stream.Recv()
 		if err == io.EOF {
-			log.Printf("RPC ended.")
+			p.log.Debugf("RPC ended.")
 			return
 		}
 		if err != nil {
-			log.Printf("Error talking to RPC: %s", err.Error())
+			p.log.Errorf("Error talking to RPC: %s", err.Error())
 			return
 		}
 		response := p.handleWebhook(request)
 		err = stream.Send(response)
 		if err != nil {
-			log.Printf("Error sending response: %s", err.Error())
+			p.log.Errorf("Error sending response: %s", err.Error())
 			continue
 		}
 	}
@@ -166,10 +174,10 @@ func (p *webPlugin) listKeys() *rpc.HttpResponse {
 		}
 	}
 	return &rpc.HttpResponse{
-		Body:   userJson,
+		Body: userJson,
 		Header: []*rpc.HttpHeader{{
-			Key:                  "Content-Type",
-			Value:                "application/json",
+			Key:   "Content-Type",
+			Value: "application/json",
 		}},
 		Status: http.StatusOK,
 	}

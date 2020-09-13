@@ -7,19 +7,20 @@ import (
 	"github.com/greboid/irc/irc"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 )
 
-func NewGrpcServer(conn *irc.Connection, eventManager *irc.EventManager, rpcPort int, plugins []Plugin, webPort int) GrpcServer {
+func NewGrpcServer(conn *irc.Connection, eventManager *irc.EventManager, rpcPort int, plugins []Plugin, webPort int, logger *zap.SugaredLogger) GrpcServer {
 	return GrpcServer{
 		conn:         conn,
 		eventManager: eventManager,
 		rpcPort:      rpcPort,
 		plugins:      plugins,
 		webPort:      webPort,
+		logger:       logger,
 	}
 }
 
@@ -29,32 +30,34 @@ type GrpcServer struct {
 	rpcPort      int
 	plugins      []Plugin
 	webPort      int
+	logger       *zap.SugaredLogger
 }
 
 func (s *GrpcServer) StartGRPC() {
-	log.Print("Generating certificate")
 	certificate, err := generateSelfSignedCert()
 	if err != nil {
-		log.Fatalf("failed to generate certifcate: %s", err.Error())
+		s.logger.Fatalf("failed to generate certificate: %s", err.Error())
+		return
 	}
-	log.Printf("Starting RPC: %d", s.rpcPort)
+	s.logger.Infof("Starting RPC server: %d", s.rpcPort)
 	lis, err := tls.Listen("tcp", fmt.Sprintf(":%d", s.rpcPort), &tls.Config{Certificates: []tls.Certificate{*certificate}})
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		s.logger.Fatalf("failed to listen: %v", err)
+		return
 	}
 	grpcServer := grpc.NewServer(
 		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(grpcauth.StreamServerInterceptor(s.authPlugin))),
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(grpcauth.UnaryServerInterceptor(s.authPlugin))),
 	)
-	httpsServer := NewHttpServer(s.webPort, s.plugins)
+	httpsServer := NewHttpServer(s.webPort, s.plugins, s.logger)
 	RegisterIRCPluginServer(grpcServer, &pluginServer{s.conn, s.eventManager})
 	RegisterHTTPPluginServer(grpcServer, httpsServer)
-	log.Printf("Starting webserver")
+	s.logger.Infof("Starting HTTP Server: %d", s.webPort)
 	httpsServer.Start()
-	log.Printf("Starting RPC server")
 	err = grpcServer.Serve(lis)
 	if err != nil {
-		log.Printf("Error listening: %s", err.Error())
+		s.logger.Errorf("Error listening: %s", err.Error())
+		return
 	}
 }
 

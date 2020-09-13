@@ -6,11 +6,11 @@ import (
 	"fmt"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +22,7 @@ type httpServer struct {
 	WebPort int
 	plugins []Plugin
 	pathMap map[string]*descriptor
+	logger  *zap.SugaredLogger
 }
 
 type descriptor struct {
@@ -30,11 +31,12 @@ type descriptor struct {
 	receive chan *HttpResponse
 }
 
-func NewHttpServer(port int, plugin []Plugin) *httpServer {
+func NewHttpServer(port int, plugin []Plugin, logger *zap.SugaredLogger) *httpServer {
 	return &httpServer{
 		WebPort: port,
 		plugins: plugin,
 		pathMap: make(map[string]*descriptor),
+		logger:  logger,
 	}
 
 }
@@ -48,16 +50,17 @@ func (h *httpServer) Start() {
 			Handler: mux,
 		}
 		go func() {
-			log.Print(server.ListenAndServe())
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				h.logger.Errorf("Error starting HTTP: %s", err.Error())
+			}
 		}()
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt, os.Kill)
-		log.Printf("Waiting for stop")
 		<-stop
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := server.Shutdown(ctx); err != nil {
-			log.Fatalf("Unable to shutdown: %s", err.Error())
+			h.logger.Errorf("Unable to shutdown: %s", err.Error())
 		}
 	}()
 }
@@ -89,7 +92,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 			if stream != nil {
 				body, err := ioutil.ReadAll(request.Body)
 				if err != nil {
-					log.Printf("Unable to read input")
+					h.logger.Errorf("Unable to read input")
 					writer.WriteHeader(http.StatusInternalServerError)
 					_, _ = writer.Write([]byte("Unable to read input"))
 					return
@@ -101,7 +104,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					Method: request.Method,
 				})
 				if err != nil {
-					log.Printf("Unable to send to plugin")
+					h.logger.Errorf("Unable to send to plugin")
 					writer.WriteHeader(http.StatusInternalServerError)
 					_, _ = writer.Write([]byte("Unable to send to handler"))
 					return
@@ -115,7 +118,7 @@ func (h *httpServer) handleRequest(writer http.ResponseWriter, request *http.Req
 					_, _ = writer.Write(response.Body)
 					return
 				case <-time.After(5 * time.Second):
-					log.Printf("Timeout waiting for plugin: %s", request.URL.Path)
+					h.logger.Errorf("Timeout waiting for plugin: %s", request.URL.Path)
 					writer.WriteHeader(http.StatusGatewayTimeout)
 					_, _ = writer.Write([]byte("Timeout waiting for handler"))
 					return
@@ -132,7 +135,7 @@ func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
 	if _, ok := h.pathMap[path]; ok {
 		return errors.New("prefix already registered")
 	}
-	log.Printf("Plugin listening for /%s/*", path)
+	h.logger.Debugf("Plugin listening for /%s/*", path)
 	h.pathMap[path] = &descriptor{
 		prefix:  path,
 		receive: make(chan *HttpResponse, 1),
@@ -141,12 +144,12 @@ func (h *httpServer) GetRequest(stream HTTPPlugin_GetRequestServer) error {
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
-			log.Printf("Plugin stopped listening for /%s/*", path)
+			h.logger.Debugf("Plugin stopped listening for /%s/*", path)
 			delete(h.pathMap, path)
 			return nil
 		}
 		if err != nil {
-			log.Printf("Plugin stopped listening for /%s/*", path)
+			h.logger.Debugf("Plugin stopped listening for /%s/*", path)
 			delete(h.pathMap, path)
 			return err
 		}

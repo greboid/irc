@@ -2,7 +2,7 @@ package irc
 
 import (
 	"github.com/imdario/mergo"
-	"log"
+	"go.uber.org/zap"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +15,7 @@ type capabilityHandler struct {
 	requested bool
 	finished  bool
 	mutex     *sync.Mutex
+	logger    *zap.SugaredLogger
 }
 
 type CapabilityStruct struct {
@@ -24,7 +25,7 @@ type CapabilityStruct struct {
 	waitingonAck bool
 }
 
-func NewCapabilityHandler() *capabilityHandler {
+func NewCapabilityHandler(logger *zap.SugaredLogger) *capabilityHandler {
 	return &capabilityHandler{
 		List:      map[string]*CapabilityStruct{},
 		wanted:    map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true},
@@ -32,6 +33,7 @@ func NewCapabilityHandler() *capabilityHandler {
 		requested: false,
 		finished:  false,
 		mutex:     &sync.Mutex{},
+		logger:    logger,
 	}
 }
 
@@ -133,7 +135,7 @@ func (h *capabilityHandler) handleACK(m *EventManager, c *Connection, tokenised 
 	if countAcked(h.List) == len(h.wanted) {
 		h.finished = true
 		if _, ok := h.List["sasl"]; ok && !c.saslFinished {
-			log.Print("Waiting for SASL")
+			h.logger.Debugf("Waiting for SASL")
 			h.waitonSasl(c)
 		}
 		c.SendRaw("CAP END")

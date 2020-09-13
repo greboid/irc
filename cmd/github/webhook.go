@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/greboid/irc/rpc"
-	"log"
+	"go.uber.org/zap"
 )
 
 type githubWebhookHandler struct {
 	client rpc.IRCPluginClient
+	log    *zap.SugaredLogger
 }
 
 func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte) error {
@@ -21,12 +22,12 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 				err := g.sendMessage([]string{"Ping received."})
 				if len(err) > 0 {
 					for index := range err {
-						log.Printf("Error handling push: %s", err[index].Error())
+						g.log.Errorf("Error handling push: %s", err[index].Error())
 					}
 				}
 			}()
 		} else {
-			log.Printf("Error handling push: %s", err.Error())
+			g.log.Errorf("Error handling push: %s", err.Error())
 			return err
 		}
 	case "push":
@@ -38,12 +39,12 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 				err := g.sendMessage(handler.handlePushEvent(data))
 				if len(err) > 0 {
 					for index := range err {
-						log.Printf("Error handling push: %s", err[index].Error())
+						g.log.Errorf("Error handling push: %s", err[index].Error())
 					}
 				}
 			}()
 		} else {
-			log.Printf("Error handling push: %s", err.Error())
+			g.log.Errorf("Error handling push: %s", err.Error())
 			return err
 		}
 	case "pull_request":
@@ -55,12 +56,12 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 				err := g.sendMessage(handler.handlePREvent(data))
 				if len(err) > 0 {
 					for index := range err {
-						log.Printf("Error handling push: %s", err[index].Error())
+						g.log.Errorf("Error handling push: %s", err[index].Error())
 					}
 				}
 			}()
 		} else {
-			log.Printf("Error handling PR: %s", err.Error())
+			g.log.Errorf("Error handling PR: %s", err.Error())
 			return err
 		}
 	case "issues":
@@ -72,12 +73,12 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 				err := g.sendMessage(handler.handleIssueEvent(data))
 				if len(err) > 0 {
 					for index := range err {
-						log.Printf("Error handling push: %s", err[index].Error())
+						g.log.Errorf("Error handling push: %s", err[index].Error())
 					}
 				}
 			}()
 		} else {
-			log.Printf("Error handling PR: %s", err.Error())
+			g.log.Errorf("Error handling PR: %s", err.Error())
 			return err
 		}
 	case "issue_comment":
@@ -89,12 +90,12 @@ func (g *githubWebhookHandler) handleWebhook(eventType string, bodyBytes []byte)
 				err := g.sendMessage(handler.handleIssueCommentEvent(data))
 				if len(err) > 0 {
 					for index := range err {
-						log.Printf("Error handling push: %s", err[index].Error())
+						g.log.Errorf("Error handling push: %s", err[index].Error())
 					}
 				}
 			}()
 		} else {
-			log.Printf("Error handling PR: %s", err.Error())
+			g.log.Errorf("Error handling PR: %s", err.Error())
 			return err
 		}
 	case "check_run":

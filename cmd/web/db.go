@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"github.com/tidwall/buntdb"
-	"log"
 )
 
 type DB struct {
@@ -12,7 +11,6 @@ type DB struct {
 }
 
 func NewDB(path string) (*DB, error) {
-	log.Print("Initialising database")
 	db := &DB{
 		path: path,
 		Db:   nil,
@@ -26,7 +24,6 @@ func NewDB(path string) (*DB, error) {
 	if err := db.Db.SetConfig(config); err != nil {
 		return nil, err
 	}
-	log.Print("Initialised database")
 	return db, nil
 }
 
@@ -84,12 +81,13 @@ func (db *DB) CreateUser(token string) error {
 	return db.setKey("users", string(value))
 }
 
-func (db *DB) InitDB() {
+func (db *DB) InitDB() error {
 	instance, err := buntdb.Open(db.path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	db.Db = instance
+	return nil
 }
 
 func (db *DB) DeleteUser(token string) error {

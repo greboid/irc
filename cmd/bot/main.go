@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/greboid/irc/irc"
+	"github.com/greboid/irc/logger"
 	"github.com/greboid/irc/rpc"
 	"github.com/kouhin/envflag"
-	"log"
+	"go.uber.org/zap"
 )
 
 //go:generate protoc -I ../../rpc plugin.proto --go_out=plugins=grpc:../../rpc
@@ -28,23 +29,31 @@ var (
 )
 
 func main() {
+	log := logger.CreateLogger(*Debug)
+	defer func() {
+		err := log.Sync()
+		if err != nil {
+			panic("Unable to sync logs")
+		}
+	}()
+	log.Info("Starting bot")
 	if err := envflag.Parse(); err != nil {
-		log.Fatalf("Unable to load config: %s", err.Error())
+		log.Fatal("Unable to load config.", zap.String("error", err.Error()))
 	}
 	Plugins, err := rpc.ParsePluginString(*PluginsString)
 	if err != nil {
-		log.Fatalf("Unable to load config: %s", err.Error())
+		log.Fatal("Unable to load config.", zap.String("error", err.Error()))
 	}
 	eventManager := irc.NewEventManager()
-	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, *Debug,
+	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, log,
 		*FloodProfile, eventManager)
-	rpcServer := rpc.NewGrpcServer(connection, eventManager, *RPCPort, Plugins, *WebPort)
-	log.Print("Adding callbacks")
+	rpcServer := rpc.NewGrpcServer(connection, eventManager, *RPCPort, Plugins, *WebPort, log)
+	log.Info("Adding callbacks")
 	addBotCallbacks(connection)
 	go rpcServer.StartGRPC()
 	err = connection.ConnectAndWaitWithRetry(5)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print("Exiting")
+	log.Info("Exiting")
 }

@@ -9,12 +9,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"github.com/greboid/irc/logger"
 	"github.com/greboid/irc/rpc"
 	"github.com/kouhin/envflag"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -25,29 +26,34 @@ var (
 	RPCToken     = flag.String("rpc-token", "", "gRPC authentication token")
 	Channel      = flag.String("channel", "", "Channel to send messages to")
 	GithubSecret = flag.String("github-secret", "", "Github secret for validating webhooks")
+	Debug        = flag.Bool("debug", false, "Show debugging info")
 )
 
 type github struct {
 	client rpc.IRCPluginClient
+	log    *zap.SugaredLogger
 }
 
 func main() {
+	log := logger.CreateLogger(*Debug)
 	if err := envflag.Parse(); err != nil {
 		log.Fatalf("Unable to load config: %s", err.Error())
 	}
-	github := github{}
-	log.Printf("Creating Github RPC Client")
+	github := github{
+		log: log,
+	}
+	log.Infof("Creating Github RPC Client")
 	client, err := github.doRPC()
 	if err != nil {
 		log.Fatalf("Unable to create RPC Client: %s", err.Error())
 	}
 	github.client = client
-	log.Printf("Starting github web server")
+	log.Infof("Starting github web server")
 	err = github.doWeb()
 	if err != nil {
 		log.Panicf("Error handling web: %s", err.Error())
 	}
-	log.Printf("exiting")
+	log.Infof("exiting")
 }
 
 func (g *github) doRPC() (rpc.IRCPluginClient, error) {
@@ -90,7 +96,7 @@ func (g *github) handleGithub(request *rpc.HttpRequest) *rpc.HttpResponse {
 	eventType := headers.Get("X-GitHub-Event")
 	header := strings.SplitN(headers.Get("X-Hub-Signature"), "=", 2)
 	if header[0] != "sha1" {
-		log.Printf("Error: %s", "Bad header")
+		g.log.Debugf("Error: %s", "Bad header")
 		return &rpc.HttpResponse{
 			Header: nil,
 			Body:   []byte("Bad headers"),
@@ -98,7 +104,7 @@ func (g *github) handleGithub(request *rpc.HttpRequest) *rpc.HttpResponse {
 		}
 	}
 	if !CheckGithubSecret(request.Body, header[1], *GithubSecret) {
-		log.Printf("Error: %s", "Bad hash")
+		g.log.Debugf("Error: %s", "Bad hash")
 		return &rpc.HttpResponse{
 			Header: nil,
 			Body:   []byte("Bad hash"),
@@ -111,7 +117,7 @@ func (g *github) handleGithub(request *rpc.HttpRequest) *rpc.HttpResponse {
 		}
 		err := webhookHandler.handleWebhook(eventType, request.Body)
 		if err != nil {
-			log.Printf("Unable to handle webhook: %s", err.Error())
+			g.log.Errorf("Unable to handle webhook: %s", err.Error())
 		}
 	}()
 	return &rpc.HttpResponse{

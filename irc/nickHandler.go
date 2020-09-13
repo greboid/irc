@@ -2,7 +2,7 @@ package irc
 
 import (
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -16,13 +16,15 @@ type nickHandler struct {
 	current           string
 	letters           []rune
 	checkingPreferred bool
+	logger            *zap.SugaredLogger
 }
 
-func NewNickHandler(preferredNickname string) *nickHandler {
+func NewNickHandler(preferredNickname string, logger *zap.SugaredLogger) *nickHandler {
 	return &nickHandler{
 		preferred: preferredNickname,
 		current:   preferredNickname,
 		letters:   []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+		logger:    logger,
 	}
 }
 
@@ -38,10 +40,10 @@ func (h *nickHandler) nicknameChanged(_ *EventManager, c *Connection, m *Message
 	sourceNick := strings.SplitN(m.Source, "!", 2)[0]
 	destNick := m.Params[0]
 	if strings.HasPrefix(sourceNick, h.current) {
-		log.Printf("Nickname changed: %s", destNick)
+		h.logger.Debugf("Nickname changed: %s", destNick)
 		h.current = destNick
 	} else if sourceNick == h.preferred {
-		log.Printf("Regained preferred nickname: %s", destNick)
+		h.logger.Debugf("Regained preferred nickname: %s", destNick)
 		c.SendRawf("NICK %s", h.preferred)
 	}
 }
@@ -52,7 +54,7 @@ func (h *nickHandler) nicknameCollision(em *EventManager, c *Connection, m *Mess
 
 func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *Message) {
 	if !h.checkingPreferred {
-		log.Printf("Nickname in use %s", h.current)
+		h.logger.Debugf("Nickname in use %s", h.current)
 		h.updateNickname(em, c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
 	} else {
 		h.checkingPreferred = false
@@ -60,12 +62,12 @@ func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *Message)
 }
 
 func (h *nickHandler) erroneusNickame(em *EventManager, c *Connection, _ *Message) {
-	log.Printf("Erroneous nickname (%s), randomising.", h.current)
+	h.logger.Debugf("Erroneous nickname (%s), randomising.", h.current)
 	h.updateNickname(em, c, h.randSeq(8))
 }
 
 func (h *nickHandler) updateNickname(_ *EventManager, c *Connection, newNickname string) {
-	log.Printf("Changing nickname: %s", newNickname)
+	h.logger.Debugf("Changing nickname: %s", newNickname)
 	h.current = newNickname
 	c.SendRawf("NICK :%s", h.current)
 }

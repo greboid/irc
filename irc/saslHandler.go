@@ -3,7 +3,7 @@ package irc
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -15,13 +15,15 @@ type SaslHandler struct {
 	readyToAuth bool
 	authing     bool
 	saslMethods []string
+	logger      *zap.SugaredLogger
 }
 
-func NewSASLHandler(useSasl bool, saslUser string, saslPass string) *SaslHandler {
+func NewSASLHandler(useSasl bool, saslUser string, saslPass string, logger *zap.SugaredLogger) *SaslHandler {
 	return &SaslHandler{
 		SASLAuth: useSasl,
 		SASLUser: saslUser,
 		SASLPass: saslPass,
+		logger:   logger,
 	}
 }
 
@@ -48,7 +50,7 @@ func (h *SaslHandler) handleCapAdd(c *Connection, cap *CapabilityStruct) {
 		c.saslStarted = true
 	}
 	if !h.checkSASLSupported(cap) {
-		log.Printf("SASL Finished")
+		h.logger.Debugf("SASL Finished")
 		c.saslFinishedChan <- true
 		c.saslFinished = true
 		return
@@ -59,14 +61,14 @@ func (h *SaslHandler) handleCapAdd(c *Connection, cap *CapabilityStruct) {
 
 func (h *SaslHandler) checkSASLSupported(cap *CapabilityStruct) bool {
 	if h.SASLAuth && h.SASLUser != "" && h.SASLPass != "" {
-		log.Print("SASL configured")
+		h.logger.Debugf("SASL configured")
 		if !contains(strings.Split(cap.values, ","), "PLAIN") {
-			log.Printf("No supported SASL methods")
+			h.logger.Debugf("No supported SASL methods")
 			return false
 		}
 		return true
 	}
-	log.Print("SASL not configured")
+	h.logger.Debugf("SASL not configured")
 	return false
 }
 
@@ -79,12 +81,12 @@ func (h *SaslHandler) handleLoggedOut(*EventManager, *Connection, *Message) {}
 func (h *SaslHandler) handleNickLocked(*EventManager, *Connection, *Message) {}
 
 func (h *SaslHandler) handleAuthSuccess(_ *EventManager, c *Connection, _ *Message) {
-	log.Print("SASL Auth success")
+	h.logger.Debugf("SASL Auth success")
 	c.saslFinishedChan <- true
 }
 
 func (h *SaslHandler) handleAuthFail(_ *EventManager, c *Connection, _ *Message) {
-	log.Print("SASL Auth failed")
+	h.logger.Debugf("SASL Auth failed")
 	c.saslFinishedChan <- true
 }
 
