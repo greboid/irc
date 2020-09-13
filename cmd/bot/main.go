@@ -44,6 +44,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to load config.", zap.String("error", err.Error()))
 	}
+	if len(*Server) == 0 && len(*Channel) == 0 {
+		log.Fatal("Server and channel are mandatory")
+	}
 	eventManager := irc.NewEventManager()
 	connection := irc.NewIRC(*Server, *Password, *Nickname, *Realname, *TLS, *SASLAuth, *SASLUser, *SASLPass, log,
 		*FloodProfile, eventManager)
