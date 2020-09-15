@@ -21,12 +21,14 @@ import (
 )
 
 var (
-	RPCHost      = flag.String("rpc-host", "localhost", "gRPC server to connect to")
-	RPCPort      = flag.Int("rpc-port", 8001, "gRPC server port")
-	RPCToken     = flag.String("rpc-token", "", "gRPC authentication token")
-	Channel      = flag.String("channel", "", "Channel to send messages to")
-	GithubSecret = flag.String("github-secret", "", "Github secret for validating webhooks")
-	Debug        = flag.Bool("debug", false, "Show debugging info")
+	RPCHost        = flag.String("rpc-host", "localhost", "gRPC server to connect to")
+	RPCPort        = flag.Int("rpc-port", 8001, "gRPC server port")
+	RPCToken       = flag.String("rpc-token", "", "gRPC authentication token")
+	Channel        = flag.String("channel", "", "Channel to send messages to")
+	PrivateChannel = flag.String("private-channel", "", "Channel to send messages to")
+	HidePrivate    = flag.Bool("hide-private", false, "Hide notifications about private repos")
+	GithubSecret   = flag.String("github-secret", "", "Github secret for validating webhooks")
+	Debug          = flag.Bool("debug", false, "Show debugging info")
 )
 
 type github struct {

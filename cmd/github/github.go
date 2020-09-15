@@ -19,7 +19,8 @@ type pushhook struct {
 }
 
 type Repository struct {
-	FullName string `json:"full_name"`
+	FullName  string `json:"full_name"`
+	IsPrivate bool   `json:"private"`
 }
 
 type Pusher struct {
