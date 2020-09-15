@@ -23,17 +23,17 @@ func Test_getJoinCommands(t *testing.T) {
 		},
 		{
 			name:             "single keyed channel",
-			args:             "#test=key",
+			args:             "#test key",
 			wantJoinCommands: []string{"JOIN :#test key"},
 		},
 		{
 			name:             "multiple keyed channel",
-			args:             "#test=key,#test2=key2",
+			args:             "#test key,#test2 key2",
 			wantJoinCommands: []string{"JOIN :#test,#test2 key,key2"},
 		},
 		{
 			name:             "mixed keyed/keyless channel",
-			args:             "#test=key,#test2",
+			args:             "#test key,#test2",
 			wantJoinCommands: []string{
 				"JOIN :#test key",
 				"JOIN :#test2",

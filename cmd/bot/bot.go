@@ -23,7 +23,7 @@ func getJoinCommands(channelString string) (joinCommands []string) {
 	keylessChannels := make([]string, 0)
 	channels := strings.Split(channelString, ",")
 	for index := range channels {
-		parts := strings.Split(channels[index], "=")
+		parts := strings.Split(channels[index], " ")
 		if len(parts) == 1 {
 			keylessChannels = append(keylessChannels, channels[index])
 		} else if len(parts) == 2 {
