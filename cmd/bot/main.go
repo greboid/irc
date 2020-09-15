@@ -17,7 +17,7 @@ var (
 	TLS           = flag.Bool("tls", true, "Connect with TLS?")
 	Nickname      = flag.String("nick", "", "Nickname to use")
 	Realname      = flag.String("realname", "", "'Real name' to use")
-	Channel       = flag.String("channel", "", "Channel to join on connect")
+	Channel       = flag.String("channel", "", "Channels to join on connect, comma separated list")
 	Debug         = flag.Bool("debug", false, "Enable IRC debug output")
 	SASLAuth      = flag.Bool("sasl-auth", false, "Authenticate via SASL?")
 	SASLUser      = flag.String("sasl-user", "", "SASL username")
