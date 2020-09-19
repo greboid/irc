@@ -47,7 +47,7 @@ func main() {
 	}
 	db, err := NewDB(*DBPath)
 	if err != nil {
-		log.Panicf("Unable to load config: %s", err.Error())
+		log.Fatalf("Unable to load config: %s", err.Error())
 		return
 	}
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})

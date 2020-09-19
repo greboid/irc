@@ -15,7 +15,10 @@ func NewDB(path string) (*DB, error) {
 		path: path,
 		Db:   nil,
 	}
-	db.InitDB()
+	err := db.InitDB()
+	if err != nil {
+		return nil, err
+	}
 	var config buntdb.Config
 	if err := db.Db.ReadConfig(&config); err != nil {
 		return nil, err
