@@ -204,7 +204,7 @@ func (irc *Connection) ConnectAndWaitWithRetry(maxRetries int) error {
 			retryDelay = 300
 		}
 		if err != nil {
-			irc.logger.Infof("Error connecting: %s", err.Error())
+			irc.logger.Errorf("Error connecting: %s", err.Error())
 			irc.logger.Infof("Retrying connect in %d", retryDelay)
 		} else {
 			return nil
