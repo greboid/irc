@@ -116,8 +116,9 @@ type GoPlumHook struct {
 	Name       string `json:"name"`
 	Type       string `json:"type"`
 	LastResult struct {
-		State string
-		Time  time.Time
+		State  string    `json:"state"`
+		Time   time.Time `json:"time"`
+		Detail string    `json:"detail"`
 	} `json:"last_result"`
 	PreviousState string `json:"previous_state"`
 	NewState      string `json:"new_state"`
