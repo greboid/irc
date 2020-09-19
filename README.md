@@ -37,3 +37,11 @@ This can either be run directly with cli arguments, or in docker.  All CLI flags
 
  - go build github.com/greboid/irc/cmd/web
  - docker run greboid/irc-webhook
+ 
+#### Goplum plugin
+
+Receives notifications from a [goplum](https://github.com/csmith/goplum) instance and outputs them to a channel.  
+The secret is appended to the plugin url to avoid spurious requests
+
+ - go build github.com/greboid/irc/cmd/goplum
+ - docker run greboid/irc-goplum
