@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/greboid/irc/rpc"
+	"github.com/greboid/irc/v2/rpc"
 	"go.uber.org/zap"
 )
 

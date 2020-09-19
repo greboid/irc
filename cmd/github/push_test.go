@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/greboid/irc/rpc"
+	"github.com/greboid/irc/v2/rpc"
 	"github.com/sebdah/goldie/v2"
 	"reflect"
 	"strings"

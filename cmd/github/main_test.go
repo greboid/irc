@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/greboid/irc/rpc"
+	"github.com/greboid/irc/v2/rpc"
 	"google.golang.org/grpc"
 	"io/ioutil"
 )

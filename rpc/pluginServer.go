@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"github.com/greboid/irc/irc"
+	"github.com/greboid/irc/v2/irc"
 	"strings"
 )
 

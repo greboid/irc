@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/greboid/irc/logger"
+	"github.com/greboid/irc/v2/logger"
 	"go.uber.org/zap"
 	"net"
 	"os"

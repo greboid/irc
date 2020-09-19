@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/greboid/irc/logger"
+	"github.com/greboid/irc/v2/logger"
 	"go.uber.org/zap"
 	"reflect"
 	"testing"
