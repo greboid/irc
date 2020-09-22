@@ -50,7 +50,6 @@ func NewHelper(rpchost string, rpcport uint16, rpctoken string) (PluginHelper, e
 func (h *helper) connectToRPC() error {
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", h.rPCHost, h.rPCPort), grpc.WithTransportCredentials(creds))
-	defer func() { _ = conn.Close() }()
 	if err != nil {
 		return err
 	}
