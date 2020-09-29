@@ -172,7 +172,7 @@ func (h *PluginHelper) SendIRCMessage(channel string, messages []string) []error
 	return errors
 }
 
-func (h *PluginHelper) SendRawMessage(messages []string) error {
+func (h *PluginHelper) SendRawMessage(messages ...string) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
