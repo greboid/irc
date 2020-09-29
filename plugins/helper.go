@@ -113,7 +113,7 @@ func (h *PluginHelper) connectIRCClient() error {
 	return nil
 }
 
-func (h *PluginHelper) GetIRCClient() (rpc.IRCPluginClient, error) {
+func (h *PluginHelper) IRCClient() (rpc.IRCPluginClient, error) {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
