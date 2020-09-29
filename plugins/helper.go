@@ -146,30 +146,29 @@ func (h *PluginHelper) Ping() error {
 	return err
 }
 
-func (h *PluginHelper) SendIRCMessage(channel string, messages []string) []error {
+func (h *PluginHelper) SendIRCMessage(channel string, messages []string) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
-			return []error{err}
+			return err
 		}
 	}
 	if h.ircClient == nil {
 		err := h.connectIRCClient()
 		if err != nil {
-			return []error{err}
+			return err
 		}
 	}
-	errors := make([]error, 0)
 	for index := range messages {
 		_, err := h.ircClient.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken), &rpc.ChannelMessage{
 			Channel: channel,
 			Message: messages[index],
 		})
 		if err != nil {
-			errors = append(errors, err)
+			return err
 		}
 	}
-	return errors
+	return nil
 }
 
 func (h *PluginHelper) SendRawMessage(messages ...string) error {
