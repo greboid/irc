@@ -12,7 +12,7 @@ import (
 )
 
 type PluginHelper struct {
-	RPCHostString string
+	RPCTarget     string
 	RPCToken      string
 	rpcConnection *grpc.ClientConn
 	httpClient    rpc.HTTPPluginClient
@@ -22,16 +22,16 @@ type PluginHelper struct {
 //NewHelper returns a PluginHelper that simplifies writing plugins by managing grpc connections and exposing a simple
 //interface.
 //It returns a PluginHelper or any errors encountered whilst creating
-func NewHelper(rpchost string, rpctoken string) (*PluginHelper, error) {
-	if len(rpchost) == 0 {
-		return &PluginHelper{}, fmt.Errorf("rpchost must be set")
+func NewHelper(target string, rpctoken string) (*PluginHelper, error) {
+	if len(target) == 0 {
+		return nil, fmt.Errorf("rpchost must be set")
 	}
 	if len(rpctoken) == 0 {
-		return &PluginHelper{}, fmt.Errorf("rpctoken must be set")
+		return nil, fmt.Errorf("rpctoken must be set")
 	}
 	return &PluginHelper{
-		RPCHostString: rpchost,
-		RPCToken:      rpctoken,
+		RPCTarget: target,
+		RPCToken:  rpctoken,
 	}, nil
 }
 
