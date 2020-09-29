@@ -45,7 +45,7 @@ func (h *PluginHelper) connectToRPC() error {
 	return nil
 }
 
-func (h *PluginHelper) GetHttpClient() error {
+func (h *PluginHelper) HTTPClient() error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
