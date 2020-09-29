@@ -196,6 +196,10 @@ func (h *PluginHelper) SendRawMessage(messages ...string) error {
 }
 
 func (h *PluginHelper) RegisterChannelMessageHandler(channel string, handler func(message *rpc.ChannelMessage)) error {
+	return h.RegisterChannelMessageHandlerWithContext(context.Background(), channel, handler)
+}
+
+func (h *PluginHelper) RegisterChannelMessageHandlerWithContext(ctx context.Context, channel string, handler func(message *rpc.ChannelMessage)) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -209,7 +213,7 @@ func (h *PluginHelper) RegisterChannelMessageHandler(channel string, handler fun
 		}
 	}
 	stream, err := h.ircClient.GetMessages(
-		rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken),
+		rpc.CtxWithToken(ctx, "bearer", h.RPCToken),
 		&rpc.Channel{Name: channel},
 	)
 	if err != nil {
