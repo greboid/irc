@@ -11,20 +11,9 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-type PluginHelper interface {
-	GetHttpClient() error
-	GetIRCClient() (rpc.IRCPluginClient, error)
-	RegisterWebhook(path string, handler func(request *rpc.HttpRequest) *rpc.HttpResponse) error
-	SendIRCMessage(channel string, messages []string) []error
-	Ping() error
-	SendRawMessage(messages []string) []error
-	RegisterChannelMessageHandler(channel string, handler func(message *rpc.ChannelMessage)) error
-}
-
-type helper struct {
-	rPCHost       string
-	rPCPort       uint16
-	rPCToken      string
+type PluginHelper struct {
+	RPCHostString string
+	RPCToken      string
 	rpcConnection *grpc.ClientConn
 	httpClient    rpc.HTTPPluginClient
 	ircClient     rpc.IRCPluginClient
@@ -33,23 +22,22 @@ type helper struct {
 //NewHelper returns a PluginHelper that simplifies writing plugins by managing grpc connections and exposing a simple
 //interface.
 //It returns a PluginHelper or any errors encountered whilst creating
-func NewHelper(rpchost string, rpcport uint16, rpctoken string) (PluginHelper, error) {
+func NewHelper(rpchost string, rpctoken string) (*PluginHelper, error) {
 	if len(rpchost) == 0 {
-		return nil, fmt.Errorf("rpchost must be set")
+		return &PluginHelper{}, fmt.Errorf("rpchost must be set")
 	}
 	if len(rpctoken) == 0 {
-		return nil, fmt.Errorf("rpctoken must be set")
+		return &PluginHelper{}, fmt.Errorf("rpctoken must be set")
 	}
-	return &helper{
-		rPCHost:  rpchost,
-		rPCPort:  rpcport,
-		rPCToken: rpctoken,
+	return &PluginHelper{
+		RPCHostString: rpchost,
+		RPCToken:      rpctoken,
 	}, nil
 }
 
-func (h *helper) connectToRPC() error {
+func (h *PluginHelper) connectToRPC() error {
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", h.rPCHost, h.rPCPort), grpc.WithTransportCredentials(creds))
+	conn, err := grpc.Dial(h.RPCToken, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return err
 	}
@@ -57,7 +45,7 @@ func (h *helper) connectToRPC() error {
 	return nil
 }
 
-func (h *helper) GetHttpClient() error {
+func (h *PluginHelper) GetHttpClient() error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -71,13 +59,13 @@ func (h *helper) GetHttpClient() error {
 	return nil
 }
 
-func (h *helper) connectHTTPClient() error {
+func (h *PluginHelper) connectHTTPClient() error {
 	client := rpc.NewHTTPPluginClient(h.rpcConnection)
 	h.httpClient = client
 	return nil
 }
 
-func (h *helper) RegisterWebhook(path string, handler func(request *rpc.HttpRequest) *rpc.HttpResponse) error {
+func (h *PluginHelper) RegisterWebhook(path string, handler func(request *rpc.HttpRequest) *rpc.HttpResponse) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -90,7 +78,7 @@ func (h *helper) RegisterWebhook(path string, handler func(request *rpc.HttpRequ
 			return err
 		}
 	}
-	stream, err := h.httpClient.GetRequest(rpc.CtxWithTokenAndPath(context.Background(), "bearer", h.rPCToken, path))
+	stream, err := h.httpClient.GetRequest(rpc.CtxWithTokenAndPath(context.Background(), "bearer", h.RPCToken, path))
 	if err != nil {
 		return err
 	}
@@ -109,7 +97,7 @@ func (h *helper) RegisterWebhook(path string, handler func(request *rpc.HttpRequ
 	}
 }
 
-func (h *helper) connectIRCClient() error {
+func (h *PluginHelper) connectIRCClient() error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -117,7 +105,7 @@ func (h *helper) connectIRCClient() error {
 		}
 	}
 	client := rpc.NewIRCPluginClient(h.rpcConnection)
-	_, err := client.Ping(rpc.CtxWithToken(context.Background(), "bearer", h.rPCToken), &rpc.Empty{})
+	_, err := client.Ping(rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken), &rpc.Empty{})
 	if err != nil {
 		return nil
 	}
@@ -125,7 +113,7 @@ func (h *helper) connectIRCClient() error {
 	return nil
 }
 
-func (h *helper) GetIRCClient() (rpc.IRCPluginClient, error) {
+func (h *PluginHelper) GetIRCClient() (rpc.IRCPluginClient, error) {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -141,7 +129,7 @@ func (h *helper) GetIRCClient() (rpc.IRCPluginClient, error) {
 	return h.ircClient, nil
 }
 
-func (h *helper) Ping() error {
+func (h *PluginHelper) Ping() error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -154,11 +142,11 @@ func (h *helper) Ping() error {
 			return err
 		}
 	}
-	_, err := h.ircClient.Ping(rpc.CtxWithToken(context.Background(), "bearer", h.rPCToken), &rpc.Empty{})
+	_, err := h.ircClient.Ping(rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken), &rpc.Empty{})
 	return err
 }
 
-func (h *helper) SendIRCMessage(channel string, messages []string) []error {
+func (h *PluginHelper) SendIRCMessage(channel string, messages []string) []error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -173,7 +161,7 @@ func (h *helper) SendIRCMessage(channel string, messages []string) []error {
 	}
 	errors := make([]error, 0)
 	for index := range messages {
-		_, err := h.ircClient.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", h.rPCToken), &rpc.ChannelMessage{
+		_, err := h.ircClient.SendChannelMessage(rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken), &rpc.ChannelMessage{
 			Channel: channel,
 			Message: messages[index],
 		})
@@ -184,32 +172,31 @@ func (h *helper) SendIRCMessage(channel string, messages []string) []error {
 	return errors
 }
 
-func (h *helper) SendRawMessage(messages []string) []error {
+func (h *PluginHelper) SendRawMessage(messages []string) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
-			return []error{err}
+			return err
 		}
 	}
 	if h.ircClient == nil {
 		err := h.connectIRCClient()
 		if err != nil {
-			return []error{err}
+			return err
 		}
 	}
-	errors := make([]error, 0)
 	for index := range messages {
-		_, err := h.ircClient.SendRawMessage(rpc.CtxWithToken(context.Background(), "bearer", h.rPCToken), &rpc.RawMessage{
+		_, err := h.ircClient.SendRawMessage(rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken), &rpc.RawMessage{
 			Message: messages[index],
 		})
 		if err != nil {
-			errors = append(errors, err)
+			return err
 		}
 	}
-	return errors
+	return nil
 }
 
-func (h *helper) RegisterChannelMessageHandler(channel string, handler func(message *rpc.ChannelMessage)) error {
+func (h *PluginHelper) RegisterChannelMessageHandler(channel string, handler func(message *rpc.ChannelMessage)) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
@@ -223,7 +210,7 @@ func (h *helper) RegisterChannelMessageHandler(channel string, handler func(mess
 		}
 	}
 	stream, err := h.ircClient.GetMessages(
-		rpc.CtxWithToken(context.Background(), "bearer", h.rPCToken),
+		rpc.CtxWithToken(context.Background(), "bearer", h.RPCToken),
 		&rpc.Channel{Name: channel},
 	)
 	if err != nil {
