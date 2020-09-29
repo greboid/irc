@@ -4,7 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/greboid/irc/v2/irc"
+
+	"github.com/greboid/irc/v3/irc"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"go.uber.org/zap"

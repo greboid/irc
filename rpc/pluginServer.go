@@ -2,8 +2,9 @@ package rpc
 
 import (
 	"context"
-	"github.com/greboid/irc/v2/irc"
 	"strings"
+
+	"github.com/greboid/irc/v3/irc"
 )
 
 type pluginServer struct {
