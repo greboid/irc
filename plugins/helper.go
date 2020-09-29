@@ -146,7 +146,7 @@ func (h *PluginHelper) Ping() error {
 	return err
 }
 
-func (h *PluginHelper) SendIRCMessage(channel string, messages []string) error {
+func (h *PluginHelper) SendChannelMessage(channel string, messages ...string) error {
 	if h.rpcConnection == nil {
 		err := h.connectToRPC()
 		if err != nil {
