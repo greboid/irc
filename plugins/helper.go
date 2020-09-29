@@ -24,10 +24,10 @@ type PluginHelper struct {
 //It returns a PluginHelper or any errors encountered whilst creating
 func NewHelper(target string, rpctoken string) (*PluginHelper, error) {
 	if len(target) == 0 {
-		return nil, fmt.Errorf("rpchost must be set")
+		return nil, fmt.Errorf("gRPC target name needs to be set")
 	}
 	if len(rpctoken) == 0 {
-		return nil, fmt.Errorf("rpctoken must be set")
+		return nil, fmt.Errorf("plugin RPC token must be set")
 	}
 	return &PluginHelper{
 		RPCTarget: target,
