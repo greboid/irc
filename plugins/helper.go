@@ -38,7 +38,7 @@ func NewHelper(target string, rpctoken string) (*PluginHelper, error) {
 func (h *PluginHelper) rpcClient(ctx context.Context) (*grpc.ClientConn, error) {
 	if h.rpcConnection == nil {
 		creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-		conn, err := grpc.DialContext(ctx, h.RPCToken, grpc.WithTransportCredentials(creds))
+		conn, err := grpc.DialContext(ctx, h.RPCTarget, grpc.WithTransportCredentials(creds))
 		if err != nil {
 			return nil, err
 		}
