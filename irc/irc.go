@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/greboid/irc/v3/logger"
+	"github.com/greboid/irc/v4/logger"
 	"go.uber.org/zap"
 )
 
