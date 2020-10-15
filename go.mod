@@ -3,7 +3,7 @@ module github.com/greboid/irc/v4
 go 1.15
 
 require (
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/imdario/mergo v0.3.11
 	github.com/pkg/errors v0.9.1 // indirect
