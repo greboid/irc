@@ -25,7 +25,6 @@ type Logger interface {
 	Errorf(template string, args ...interface{})
 	// Panicf uses fmt.Sprintf to log a templated message with an error priority
 	Panicf(template string, args ...interface{})
-
 }
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,

@@ -1,10 +1,21 @@
 package irc
 
 import (
-	"go.uber.org/zap"
 	"reflect"
 	"testing"
 )
+
+type noopLogger struct{}
+
+func (n noopLogger) Debugf(_ string, _ ...interface{}) {}
+
+func (n noopLogger) Infof(_ string, _ ...interface{}) {}
+
+func (n noopLogger) Warnf(_ string, _ ...interface{}) {}
+
+func (n noopLogger) Errorf(_ string, _ ...interface{}) {}
+
+func (n noopLogger) Panicf(_ string, _ ...interface{}) {}
 
 func TestNewSupportHandler(t *testing.T) {
 	value := NewSupportHandler()
@@ -18,7 +29,7 @@ func TestNewSupportHandler(t *testing.T) {
 
 func Test_supportParser_install(t *testing.T) {
 	conn := &Connection{
-		logger: zap.NewNop().Sugar(),
+		logger: noopLogger{},
 	}
 	value := supportParser{}
 	value.install(conn)
