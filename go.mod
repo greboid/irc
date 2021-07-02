@@ -1,6 +1,6 @@
-module github.com/greboid/irc/v4
+module github.com/greboid/irc/v5
 
-go 1.15
+go 1.16
 
 require (
 	github.com/imdario/mergo v0.3.12

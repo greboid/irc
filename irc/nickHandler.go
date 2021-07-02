@@ -2,7 +2,6 @@ package irc
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -16,10 +15,10 @@ type nickHandler struct {
 	current           string
 	letters           []rune
 	checkingPreferred bool
-	logger            *zap.SugaredLogger
+	logger            Logger
 }
 
-func NewNickHandler(preferredNickname string, logger *zap.SugaredLogger) *nickHandler {
+func NewNickHandler(preferredNickname string, logger Logger) *nickHandler {
 	return &nickHandler{
 		preferred: preferredNickname,
 		current:   preferredNickname,

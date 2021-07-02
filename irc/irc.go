@@ -11,15 +11,27 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/greboid/irc/v4/logger"
-	"go.uber.org/zap"
 )
 
+//Logger interface for loosely typed printf-style formatted error logging messages
+type Logger interface {
+	// Debugf uses fmt.Sprintf to log a templated message with an debug priority
+	Debugf(template string, args ...interface{})
+	// Infof uses fmt.Sprintf to log a templated message with an info priority
+	Infof(template string, args ...interface{})
+	// Warnf uses fmt.Sprintf to log a templated message with an warning priority
+	Warnf(template string, args ...interface{})
+	// Errorf uses fmt.Sprintf to log a templated message with an error priority
+	Errorf(template string, args ...interface{})
+	// Panicf uses fmt.Sprintf to log a templated message with an error priority
+	Panicf(template string, args ...interface{})
+
+}
+
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	log *zap.SugaredLogger, floodProfile string, eventManager *EventManager) *Connection {
+	log Logger, floodProfile string, eventManager *EventManager) (error, *Connection) {
 	if log == nil {
-		log = logger.CreateLogger(false)
+		return errors.New("logger cannot be nil"), nil
 	}
 	connection := &Connection{
 		ClientConfig: ClientConfig{
@@ -38,9 +50,9 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 		listeners:    eventManager,
 		logger:       log,
 	}
-	connection.logger.Info("Creating new IRC")
+	connection.logger.Infof("Creating new IRC")
 	connection.Init()
-	return connection
+	return nil, connection
 }
 
 func (irc *Connection) readLoop() {
@@ -119,7 +131,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 }
 
 func (irc *Connection) Init() {
-	irc.logger.Info("Initialising IRC")
+	irc.logger.Infof("Initialising IRC")
 	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)

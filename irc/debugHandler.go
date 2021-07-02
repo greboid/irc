@@ -1,15 +1,11 @@
 package irc
 
-import (
-	"go.uber.org/zap"
-)
-
 type debugHandler struct {
 	debug  bool
-	logger *zap.SugaredLogger
+	logger Logger
 }
 
-func NewDebugHandler(logger *zap.SugaredLogger) *debugHandler {
+func NewDebugHandler(logger Logger) *debugHandler {
 	return &debugHandler{
 		logger: logger,
 	}

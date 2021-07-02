@@ -3,7 +3,6 @@ package irc
 import (
 	"encoding/base64"
 	"fmt"
-	"go.uber.org/zap"
 	"strings"
 )
 
@@ -15,10 +14,10 @@ type SaslHandler struct {
 	readyToAuth bool
 	authing     bool
 	saslMethods []string
-	logger      *zap.SugaredLogger
+	logger      Logger
 }
 
-func NewSASLHandler(useSasl bool, saslUser string, saslPass string, logger *zap.SugaredLogger) *SaslHandler {
+func NewSASLHandler(useSasl bool, saslUser string, saslPass string, logger Logger) *SaslHandler {
 	return &SaslHandler{
 		SASLAuth: useSasl,
 		SASLUser: saslUser,

@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"go.uber.org/zap"
 	"io"
 	"net"
 	"os"
@@ -57,7 +56,7 @@ type Connection struct {
 	saslStarted      bool
 	limitedWriter    io.Writer
 	FloodProfile     string
-	logger           *zap.SugaredLogger
+	logger           Logger
 }
 
 type RawMessage struct {

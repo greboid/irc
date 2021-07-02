@@ -2,7 +2,6 @@ package irc
 
 import (
 	"github.com/imdario/mergo"
-	"go.uber.org/zap"
 	"strings"
 	"sync"
 	"time"
@@ -15,7 +14,7 @@ type capabilityHandler struct {
 	requested bool
 	finished  bool
 	mutex     *sync.Mutex
-	logger    *zap.SugaredLogger
+	logger    Logger
 }
 
 type CapabilityStruct struct {
@@ -25,7 +24,7 @@ type CapabilityStruct struct {
 	waitingonAck bool
 }
 
-func NewCapabilityHandler(logger *zap.SugaredLogger) *capabilityHandler {
+func NewCapabilityHandler(logger Logger) *capabilityHandler {
 	return &capabilityHandler{
 		List:      map[string]*CapabilityStruct{},
 		wanted:    map[string]bool{"echo-message": true, "message-tags": true, "multi-prefix": true, "sasl": true},
