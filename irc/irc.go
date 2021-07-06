@@ -28,10 +28,7 @@ type Logger interface {
 }
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	log Logger, floodProfile string, eventManager *EventManager) (error, *Connection) {
-	if log == nil {
-		return errors.New("logger cannot be nil"), nil
-	}
+	log Logger, floodProfile string, eventManager *EventManager) (*Connection, error) {
 	connection := &Connection{
 		ClientConfig: ClientConfig{
 			Server:   server,
@@ -51,7 +48,7 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 	}
 	connection.logger.Infof("Creating new IRC")
 	connection.Init()
-	return nil, connection
+	return connection, nil
 }
 
 func (irc *Connection) readLoop() {
