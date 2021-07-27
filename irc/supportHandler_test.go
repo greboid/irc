@@ -281,7 +281,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMesage(":server 005 nick AWAYLEN=500 CHANLIMIT=#:100 :are supported by this server"),
+				m:  connection.parseMessage(":server 005 nick AWAYLEN=500 CHANLIMIT=#:100 :are supported by this server"),
 			},
 			wanted: []supportedValue{
 				{
@@ -303,7 +303,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMesage(":server 005 nick EXCEPTS= :are supported by this server"),
+				m:  connection.parseMessage(":server 005 nick EXCEPTS= :are supported by this server"),
 			},
 			wanted: []supportedValue{
 				{
@@ -326,7 +326,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMesage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
+				m:  connection.parseMessage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
 			},
 			wanted: []supportedValue{},
 		},
@@ -339,7 +339,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMesage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
+				m:  connection.parseMessage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
 			},
 			wanted: []supportedValue{},
 		},
