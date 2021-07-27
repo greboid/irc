@@ -4,10 +4,10 @@ import (
 	"strings"
 )
 
-func (irc *Connection) parseMesage(line string) *Message {
+func (irc *Connection) parseMessage(line string) *Message {
 	line = strings.TrimRight(line, "\r\n")
 	if len(line) < 5 {
-		panic("//todo handle this nicely")
+		return nil
 	}
 	message := &Message{
 		Raw: line,
@@ -17,7 +17,7 @@ func (irc *Connection) parseMesage(line string) *Message {
 			message.Tags = line[1:i]
 			line = line[i+1:]
 		} else {
-			panic("Malformed msg from server")
+			return nil
 		}
 	}
 	if line[0] == ':' {
@@ -25,7 +25,7 @@ func (irc *Connection) parseMesage(line string) *Message {
 			message.Source = line[1:i]
 			line = line[i+1:]
 		} else {
-			panic("Malformed msg from server")
+			return nil
 		}
 	} else {
 		message.Source = irc.ClientConfig.Server

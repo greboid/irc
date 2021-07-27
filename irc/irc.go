@@ -54,15 +54,19 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 func (irc *Connection) readLoop() {
 	rb := bufio.NewReaderSize(irc.socket, 8192+512)
 	for {
-		msg, err := rb.ReadString('\n')
+		line, err := rb.ReadString('\n')
 		if err != nil {
 			irc.errorChannel <- err
 			break
 		}
 		irc.lastMessage = time.Now()
-		go irc.runRawHandlers(RawMessage{message: msg, out: false})
-		message := irc.parseMesage(msg)
-		go irc.runInboundHandlers(message)
+		go irc.runRawHandlers(RawMessage{message: line, out: false})
+		message := irc.parseMessage(line)
+		if message != nil {
+			go irc.runInboundHandlers(message)
+		} else {
+			irc.logger.Warnf("Invalid line received from server: %s", line)
+		}
 	}
 }
 
