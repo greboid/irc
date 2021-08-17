@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"bufio"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -11,6 +10,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/ergochat/irc-go/ircmsg"
+	"github.com/ergochat/irc-go/ircreader"
 )
 
 //Logger interface for loosely typed printf-style formatted error logging messages
@@ -52,20 +54,21 @@ func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, s
 }
 
 func (irc *Connection) readLoop() {
-	rb := bufio.NewReaderSize(irc.socket, 8192+512)
+
+	rb := ircreader.NewIRCReader(irc.socket)
 	for {
-		line, err := rb.ReadString('\n')
+		line, err := rb.ReadLine()
 		if err != nil {
 			irc.errorChannel <- err
 			break
 		}
 		irc.lastMessage = time.Now()
-		go irc.runRawHandlers(RawMessage{message: line, out: false})
-		message := irc.parseMessage(line)
-		if message != nil {
-			go irc.runInboundHandlers(message)
-		} else {
+		go irc.runRawHandlers(RawMessage{message: string(line), out: false})
+		message, err := ircmsg.ParseLine(string(line))
+		if err != nil {
 			irc.logger.Warnf("Invalid line received from server: %s", line)
+		} else {
+			go irc.runInboundHandlers(&message)
 		}
 	}
 }
@@ -132,7 +135,7 @@ func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
 
 func (irc *Connection) Init() {
 	irc.logger.Infof("Initialising IRC")
-	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *Message))
+	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *ircmsg.Message))
 	irc.writeChan = make(chan string, 10)
 	irc.errorChannel = make(chan error, 1)
 	irc.quitting = make(chan bool, 1)

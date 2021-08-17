@@ -2,6 +2,8 @@ package irc
 
 import (
 	"strings"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 func (irc *Connection) addOutboundHandlers(handlers []func(em *EventManager, c *Connection, m string)) {
@@ -30,13 +32,13 @@ func (irc *Connection) AddRawHandler(f func(c *Connection, m RawMessage)) {
 	irc.rawHandlers = append(irc.rawHandlers, f)
 }
 
-func (irc *Connection) AddInboundHandlers(handlers map[string]func(em *EventManager, c *Connection, m *Message)) {
+func (irc *Connection) AddInboundHandlers(handlers map[string]func(em *EventManager, c *Connection, m *ircmsg.Message)) {
 	for verb, handler := range handlers {
 		irc.AddInboundHandler(verb, handler)
 	}
 }
 
-func (irc *Connection) AddInboundHandler(s string, f func(em *EventManager, c *Connection, m *Message)) {
+func (irc *Connection) AddInboundHandler(s string, f func(em *EventManager, c *Connection, m *ircmsg.Message)) {
 	if !irc.initialised {
 		irc.Init()
 	}
@@ -44,8 +46,8 @@ func (irc *Connection) AddInboundHandler(s string, f func(em *EventManager, c *C
 	irc.inboundHandlers[s] = append(irc.inboundHandlers[s], f)
 }
 
-func (irc *Connection) runInboundHandlers(m *Message) {
-	handlers := irc.inboundHandlers[m.Verb]
+func (irc *Connection) runInboundHandlers(m *ircmsg.Message) {
+	handlers := irc.inboundHandlers[m.Command]
 	handlers = append(handlers, irc.inboundHandlers["*"]...)
 	for _, handler := range handlers {
 		go handler(irc.listeners, irc, m)

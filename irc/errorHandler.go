@@ -1,5 +1,9 @@
 package irc
 
+import (
+	"github.com/ergochat/irc-go/ircmsg"
+)
+
 type errorHandler struct {
 }
 
@@ -11,6 +15,6 @@ func (h *errorHandler) install(c *Connection) {
 	c.AddInboundHandler("ERROR", h.quitOnError)
 }
 
-func (h *errorHandler) quitOnError(_ *EventManager, c *Connection, _ *Message) {
+func (h *errorHandler) quitOnError(_ *EventManager, c *Connection, _ *ircmsg.Message) {
 	c.Finished <- true
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 type SaslHandler struct {
@@ -73,35 +75,35 @@ func (h *SaslHandler) checkSASLSupported(cap *CapabilityStruct) bool {
 
 func (h *SaslHandler) handleCapDel(*Connection, *CapabilityStruct) {}
 
-func (h *SaslHandler) handleLoggedinAs(*EventManager, *Connection, *Message) {}
+func (h *SaslHandler) handleLoggedinAs(*EventManager, *Connection, *ircmsg.Message) {}
 
-func (h *SaslHandler) handleLoggedOut(*EventManager, *Connection, *Message) {}
+func (h *SaslHandler) handleLoggedOut(*EventManager, *Connection, *ircmsg.Message) {}
 
-func (h *SaslHandler) handleNickLocked(*EventManager, *Connection, *Message) {}
+func (h *SaslHandler) handleNickLocked(*EventManager, *Connection, *ircmsg.Message) {}
 
-func (h *SaslHandler) handleAuthSuccess(_ *EventManager, c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthSuccess(_ *EventManager, c *Connection, _ *ircmsg.Message) {
 	h.logger.Debugf("SASL Auth success")
 	c.saslFinishedChan <- true
 }
 
-func (h *SaslHandler) handleAuthFail(_ *EventManager, c *Connection, _ *Message) {
+func (h *SaslHandler) handleAuthFail(_ *EventManager, c *Connection, _ *ircmsg.Message) {
 	h.logger.Debugf("SASL Auth failed")
 	c.saslFinishedChan <- true
 }
 
-func (h *SaslHandler) handleMessageTooLong(*EventManager, *Connection, *Message) {
+func (h *SaslHandler) handleMessageTooLong(*EventManager, *Connection, *ircmsg.Message) {
 }
 
-func (h *SaslHandler) handleAborted(*EventManager, *Connection, *Message) {
+func (h *SaslHandler) handleAborted(*EventManager, *Connection, *ircmsg.Message) {
 }
 
-func (h *SaslHandler) handleAlreadyAuthed(*EventManager, *Connection, *Message) {
+func (h *SaslHandler) handleAlreadyAuthed(*EventManager, *Connection, *ircmsg.Message) {
 }
 
-func (h *SaslHandler) handleMechanisms(*EventManager, *Connection, *Message) {
+func (h *SaslHandler) handleMechanisms(*EventManager, *Connection, *ircmsg.Message) {
 }
 
-func (h *SaslHandler) handleAuthenticate(em *EventManager, c *Connection, m *Message) {
+func (h *SaslHandler) handleAuthenticate(em *EventManager, c *Connection, m *ircmsg.Message) {
 	if h.readyToAuth {
 		if len(m.Params) == 1 && m.Params[0] == "+" {
 			h.authing = true

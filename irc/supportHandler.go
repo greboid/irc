@@ -2,6 +2,8 @@ package irc
 
 import (
 	"strings"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 type supportParser struct {
@@ -25,7 +27,7 @@ func (h *supportParser) install(c *Connection) {
 	c.AddInboundHandler("005", h.handleSupport)
 }
 
-func (h *supportParser) handleSupport(em *EventManager, c *Connection, m *Message) {
+func (h *supportParser) handleSupport(em *EventManager, c *Connection, m *ircmsg.Message) {
 	var tokenised []supportedValue
 	if m == nil || m.Params == nil || len(m.Params) == 0 {
 		tokenised = []supportedValue{}

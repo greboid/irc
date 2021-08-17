@@ -1,10 +1,12 @@
 package irc
 
 import (
-	"github.com/imdario/mergo"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ergochat/irc-go/ircmsg"
+	"github.com/imdario/mergo"
 )
 
 type capabilityHandler struct {
@@ -42,7 +44,7 @@ func (h *capabilityHandler) install(_ *EventManager, c *Connection) {
 	h.Negotiate(c)
 }
 
-func (h *capabilityHandler) handleRegistered(*EventManager, *Connection, *Message) {
+func (h *capabilityHandler) handleRegistered(*EventManager, *Connection, *ircmsg.Message) {
 	h.finished = true
 	h.listing = false
 	h.requested = false
@@ -52,7 +54,7 @@ func (h *capabilityHandler) Negotiate(irc Sender) {
 	irc.SendRaw("CAP LS 302")
 }
 
-func (h *capabilityHandler) handleCaps(eventManager *EventManager, c *Connection, m *Message) {
+func (h *capabilityHandler) handleCaps(eventManager *EventManager, c *Connection, m *ircmsg.Message) {
 	switch m.Params[1] {
 	case "LS":
 		h.handleLS(strings.Split(m.Params[2], " "))

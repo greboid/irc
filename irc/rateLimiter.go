@@ -2,8 +2,10 @@ package irc
 
 import (
 	"context"
-	"golang.org/x/time/rate"
 	"io"
+
+	"github.com/ergochat/irc-go/ircmsg"
+	"golang.org/x/time/rate"
 )
 
 func (irc *Connection) NewRateLimiter(w io.Writer, floodProfile string) *RateLimiter {
@@ -41,6 +43,6 @@ func (r *RateLimiter) Write(p []byte) (n int, err error) {
 	return r.baseWriter.Write(p)
 }
 
-func (r *RateLimiter) handle001(*EventManager, *Connection, *Message) {
+func (r *RateLimiter) handle001(*EventManager, *Connection, *ircmsg.Message) {
 	r.received001 = true
 }

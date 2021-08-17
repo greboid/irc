@@ -8,6 +8,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 type nickHandler struct {
@@ -35,8 +37,8 @@ func (h *nickHandler) install(c *Connection) {
 	go h.monitorNickname(c)
 }
 
-func (h *nickHandler) nicknameChanged(_ *EventManager, c *Connection, m *Message) {
-	sourceNick := strings.SplitN(m.Source, "!", 2)[0]
+func (h *nickHandler) nicknameChanged(_ *EventManager, c *Connection, m *ircmsg.Message) {
+	sourceNick := strings.SplitN(m.Prefix, "!", 2)[0]
 	destNick := m.Params[0]
 	if strings.HasPrefix(sourceNick, h.current) {
 		h.logger.Debugf("Nickname changed: %s", destNick)
@@ -47,11 +49,11 @@ func (h *nickHandler) nicknameChanged(_ *EventManager, c *Connection, m *Message
 	}
 }
 
-func (h *nickHandler) nicknameCollision(em *EventManager, c *Connection, m *Message) {
+func (h *nickHandler) nicknameCollision(em *EventManager, c *Connection, m *ircmsg.Message) {
 	h.nicknameInUse(em, c, m)
 }
 
-func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *Message) {
+func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *ircmsg.Message) {
 	if !h.checkingPreferred {
 		h.logger.Debugf("Nickname in use %s", h.current)
 		h.updateNickname(em, c, fmt.Sprintf("%s%d", h.current, rand.Intn(10)))
@@ -60,7 +62,7 @@ func (h *nickHandler) nicknameInUse(em *EventManager, c *Connection, _ *Message)
 	}
 }
 
-func (h *nickHandler) erroneusNickame(em *EventManager, c *Connection, _ *Message) {
+func (h *nickHandler) erroneusNickame(em *EventManager, c *Connection, _ *ircmsg.Message) {
 	h.logger.Debugf("Erroneous nickname (%s), randomising.", h.current)
 	h.updateNickname(em, c, h.randSeq(8))
 }

@@ -1,8 +1,11 @@
 package irc
 
 import (
+	"log"
 	"reflect"
 	"testing"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 type noopLogger struct{}
@@ -213,7 +216,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 	type args struct {
 		em *EventManager
 		c  *Connection
-		m  *Message
+		m  *ircmsg.Message
 	}
 	tests := []struct {
 		name   string
@@ -243,13 +246,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m: &Message{
-					Raw:    "",
-					Tags:   "",
-					Source: "",
-					Verb:   "",
-					Params: nil,
-				},
+				m: &ircmsg.Message{},
 			},
 			wanted: nil,
 		},
@@ -262,13 +259,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m: &Message{
-					Raw:    "",
-					Tags:   "",
-					Source: "",
-					Verb:   "",
-					Params: []string{},
-				},
+				m: &ircmsg.Message{},
 			},
 			wanted: nil,
 		},
@@ -281,7 +272,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMessage(":server 005 nick AWAYLEN=500 CHANLIMIT=#:100 :are supported by this server"),
+				m:  mustParse(":server 005 nick AWAYLEN=500 CHANLIMIT=#:100 :are supported by this server"),
 			},
 			wanted: []supportedValue{
 				{
@@ -303,7 +294,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMessage(":server 005 nick EXCEPTS= :are supported by this server"),
+				m:  mustParse(":server 005 nick EXCEPTS= :are supported by this server"),
 			},
 			wanted: []supportedValue{
 				{
@@ -326,7 +317,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMessage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
+				m:  mustParse(":server 005 nick -AWAYLEN=500 :are supported by this server"),
 			},
 			wanted: []supportedValue{},
 		},
@@ -339,7 +330,7 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			args: args{
 				em: nil,
 				c:  &connection,
-				m:  connection.parseMessage(":server 005 nick -AWAYLEN=500 :are supported by this server"),
+				m:  mustParse(":server 005 nick -AWAYLEN=500 :are supported by this server"),
 			},
 			wanted: []supportedValue{},
 		},
@@ -355,4 +346,12 @@ func Test_supportParser_handleSupport1(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustParse(line string) *ircmsg.Message {
+	message, err := ircmsg.ParseLine(line)
+	if err != nil {
+		log.Panicf("Unable to parse line: %s", err)
+	}
+	return &message
 }

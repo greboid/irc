@@ -5,6 +5,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/ergochat/irc-go/ircmsg"
 )
 
 var (
@@ -47,7 +49,7 @@ type Connection struct {
 	writeChan        chan string
 	errorChannel     chan error
 	rawHandlers      []func(*Connection, RawMessage)
-	inboundHandlers  map[string][]func(*EventManager, *Connection, *Message)
+	inboundHandlers  map[string][]func(*EventManager, *Connection, *ircmsg.Message)
 	outboundHandlers []func(*EventManager, *Connection, string)
 	signals          chan os.Signal
 	initialised      bool
@@ -74,7 +76,7 @@ type Message struct {
 
 type InboundHandler struct {
 	Verb    string
-	Handler func(*Connection, *Message)
+	Handler func(*Connection, *ircmsg.Message)
 }
 
 type Channel struct {
