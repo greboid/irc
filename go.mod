@@ -1,4 +1,4 @@
-module github.com/greboid/irc/v6
+module github.com/greboid/irc/v7
 
 go 1.17
 
