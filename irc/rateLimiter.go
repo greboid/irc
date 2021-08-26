@@ -2,47 +2,41 @@ package irc
 
 import (
 	"context"
-	"io"
+	"math"
+	"time"
 
 	"github.com/ergochat/irc-go/ircmsg"
 	"golang.org/x/time/rate"
 )
 
-func (irc *Connection) NewRateLimiter(w io.Writer, floodProfile string) *RateLimiter {
-	rl := RateLimiter{
-		baseWriter: w,
-	}
+func (irc *Connection) NewRateLimiter(floodProfile string) *RateLimiter {
+	rl := RateLimiter{}
 	rl.Init(floodProfile)
-	irc.AddInboundHandler("001", rl.handle001)
+	irc.connection.AddConnectCallback(func(ircmsg.Message) {
+		rl.received001 = true
+	})
 	return &rl
 }
 
 type RateLimiter struct {
-	baseWriter  io.Writer
 	limiter     *rate.Limiter
 	received001 bool
-	byteToToken int
 }
 
 func (r *RateLimiter) Init(profile string) {
 	switch profile {
 	case "unlimited":
-		r.limiter = rate.NewLimiter(rate.Inf, 0)
-		r.byteToToken = 1
+		r.limiter = rate.NewLimiter(rate.Inf, math.MaxInt)
 	case "restrictive":
-		r.limiter = rate.NewLimiter(rate.Limit(0.3), 4)
-		r.byteToToken = 128
+		r.limiter = rate.NewLimiter(rate.Every(1500 * time.Millisecond), 3)
 	}
 }
 
-func (r *RateLimiter) Write(p []byte) (n int, err error) {
-	needed := len(p) / r.byteToToken
+func (r *RateLimiter) Wait() error {
 	if r.received001 {
-		_ = r.limiter.WaitN(context.Background(), needed)
+		if err := r.limiter.WaitN(context.Background(), 1); err != nil {
+			return err
+		}
 	}
-	return r.baseWriter.Write(p)
-}
-
-func (r *RateLimiter) handle001(*EventManager, *Connection, *ircmsg.Message) {
-	r.received001 = true
+	return nil
 }

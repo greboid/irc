@@ -4,15 +4,14 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"net"
+	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
+	"github.com/ergochat/irc-go/ircevent"
 	"github.com/ergochat/irc-go/ircmsg"
-	"github.com/ergochat/irc-go/ircreader"
 )
 
 //Logger interface for loosely typed printf-style formatted error logging messages
@@ -27,173 +26,106 @@ type Logger interface {
 	Errorf(template string, args ...interface{})
 	// Panicf uses fmt.Sprintf to log a templated message with an error priority
 	Panicf(template string, args ...interface{})
+	// Fatalf uses fmt.Sprintf to log a templated message with a fatal priority and then exit the application
+	Fatalf(template string, args ...interface{})
+}
+
+type Connection struct {
+	connection   *ircevent.Connection
+	FloodProfile string
+	logger           Logger
+	connected bool
+	limiter *RateLimiter
 }
 
 func NewIRC(server, password, nickname, realname string, useTLS, useSasl bool, saslUser, saslPass string,
-	log Logger, floodProfile string, eventManager *EventManager) *Connection {
+	logger Logger, floodProfile string) *Connection {
 	connection := &Connection{
-		ClientConfig: ClientConfig{
-			Server:   server,
-			Password: password,
-			Nick:     nickname,
-			User:     nickname,
-			Realname: realname,
-			UseTLS:   useTLS,
+		connection: &ircevent.Connection{
+			Server:          server,
+			Nick:            nickname,
+			User:            nickname,
+			RealName:        realname,
+			Password:        password,
+			SASLLogin:       saslUser,
+			SASLPassword:    saslPass,
+			SASLMech:        "PLAIN",
+			Timeout:         1 * time.Minute,
+			KeepAlive:       4 * time.Minute,
+			UseTLS:          useTLS,
+			UseSASL:         useSasl,
+			EnableCTCP:      true,
+			Debug: true,
+			TLSConfig: &tls.Config{
+				InsecureSkipVerify:          true,
+			},
+			QuitMessage: " ",
+			Log: log.Default(),
 		},
-		ConnConfig:   DefaultConnectionConfig,
-		SASLAuth:     useSasl,
-		SASLUser:     saslUser,
-		SASLPass:     saslPass,
 		FloodProfile: floodProfile,
-		listeners:    eventManager,
-		logger:       log,
+		logger:       logger,
 	}
-	connection.logger.Infof("Creating new IRC")
-	connection.Init()
+	connection.limiter = connection.NewRateLimiter(floodProfile)
+	logger.Infof("Creating new IRC")
 	return connection
 }
 
-func (irc *Connection) readLoop() {
-
-	rb := ircreader.NewIRCReader(irc.socket)
-	for {
-		line, err := rb.ReadLine()
-		if err != nil {
-			irc.errorChannel <- err
-			break
-		}
-		irc.lastMessage = time.Now()
-		go irc.runRawHandlers(RawMessage{message: string(line), out: false})
-		message, err := ircmsg.ParseLine(string(line))
-		if err != nil {
-			irc.logger.Warnf("Invalid line received from server: %s", line)
-		} else {
-			go irc.runInboundHandlers(&message)
-		}
-	}
-}
-
-func (irc *Connection) writeLoop() {
-	for {
-		select {
-		case b, ok := <-irc.writeChan:
-			if !ok || b == "" || irc.socket == nil {
-				break
-			}
-			go irc.runRawHandlers(RawMessage{message: b, out: true})
-			go irc.runOutboundHandlers(b)
-			_, err := irc.limitedWriter.Write([]byte(b))
-			if err != nil {
-				irc.errorChannel <- err
-				break
-			}
-		}
-	}
-}
-
-func (irc *Connection) miscLoop() {
-	keepaliveTicker := time.NewTicker(irc.ConnConfig.KeepAlive)
-	for {
-		select {
-		case <-keepaliveTicker.C:
-			if time.Since(irc.lastMessage) >= irc.ConnConfig.KeepAlive {
-				irc.SendRawf("PING %d", time.Now().UnixNano())
-			}
-		case err := <-irc.errorChannel:
-			irc.logger.Errorf("IRC Error occurred: %s", err.Error())
-			irc.Finished <- true
-		case <-irc.signals:
-			go irc.doQuit()
-		case <-irc.quitting:
-			go irc.doQuit()
-		}
-	}
-}
-
-func (irc *Connection) doQuit() {
-	irc.SendRaw("QUIT")
-	select {
-	case <-time.After(2 * time.Second):
-		irc.Finished <- true
-	}
-}
-
 func (irc *Connection) Quit() {
-	irc.quitting <- true
+	irc.connection.Quit()
 }
 
-func (irc *Connection) SendRaw(line string) {
-	if !strings.HasSuffix(line, "\r\n") {
-		line = line + "\r\n"
-	}
-	irc.writeChan <- line
+func (irc *Connection) AddConnectCallback(handler func(ircmsg.Message)) ircevent.CallbackID {
+	return irc.connection.AddConnectCallback(handler)
 }
 
-func (irc *Connection) SendRawf(formatLine string, args ...interface{}) {
-	irc.SendRaw(fmt.Sprintf(formatLine, args...))
+func (irc *Connection) AddCallback(command string, handler func(ircmsg.Message)) ircevent.CallbackID {
+	return irc.connection.AddCallback(command, handler)
 }
 
-func (irc *Connection) Init() {
-	irc.logger.Infof("Initialising IRC")
-	irc.inboundHandlers = make(map[string][]func(*EventManager, *Connection, *ircmsg.Message))
-	irc.writeChan = make(chan string, 10)
-	irc.errorChannel = make(chan error, 1)
-	irc.quitting = make(chan bool, 1)
-	irc.signals = make(chan os.Signal, 1)
-	irc.Finished = make(chan bool, 1)
-	irc.saslFinishedChan = make(chan bool, 1)
-	signal.Notify(irc.signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-	irc.outboundHandlers = make([]func(*EventManager, *Connection, string), 0)
-	irc.rawHandlers = make([]func(*Connection, RawMessage), 0)
-
-	irc.initialised = true
+func (irc *Connection) RemoveCallback(id ircevent.CallbackID) {
+	irc.connection.RemoveCallback(id)
 }
 
-func (irc *Connection) Connect() error {
-	irc.logger.Infof("Connecting to IRC: %s", irc.ClientConfig.Server)
-	var err error
-	if irc.ClientConfig.UseTLS {
-		dialer := &net.Dialer{Timeout: irc.ConnConfig.Timeout}
-		irc.socket, err = tls.DialWithDialer(dialer, "tcp", irc.ClientConfig.Server, nil)
-	} else {
-		irc.socket, err = net.DialTimeout("tcp", irc.ClientConfig.Server, irc.ConnConfig.Timeout)
-	}
-	irc.limitedWriter = irc.NewRateLimiter(irc.socket, irc.FloodProfile)
+func (irc *Connection) Join(channel string) error {
+	return irc.connection.Join(channel)
+}
+
+func (irc *Connection) Part(channel string) error {
+	return irc.connection.Part(channel)
+}
+
+func (irc *Connection) CurrentNick() string {
+	return irc.connection.CurrentNick()
+}
+
+func (irc *Connection) SendRaw(line string) error {
+	err := irc.limiter.Wait()
 	if err != nil {
 		return err
 	}
+	return irc.connection.SendRaw(line)
+}
 
-	go irc.readLoop()
-	go irc.miscLoop()
-	go irc.writeLoop()
-	NewErrorHandler().install(irc)
-	NewPingHandler().install(irc.listeners, irc)
-	NewCapabilityHandler(irc.logger).install(irc.listeners, irc)
-	NewNickHandler(irc.ClientConfig.Nick, irc.logger).install(irc)
-	NewDebugHandler(irc.logger).install(irc)
-	NewSASLHandler(irc.SASLAuth, irc.SASLUser, irc.SASLPass, irc.logger).Install(irc.listeners, irc)
-	NewSupportHandler().install(irc)
-	if len(irc.ClientConfig.Password) > 0 {
-		irc.SendRawf("PASS %s", irc.ClientConfig.Password)
+func (irc *Connection) SendRawf(formatLine string, args ...interface{}) error {
+	return irc.SendRaw(fmt.Sprintf(formatLine, args...))
+}
+
+func (irc *Connection) Connect() error {
+	irc.logger.Infof("Connecting to IRC: %s", irc.connection.Server)
+	err := irc.connection.Connect()
+	if err != nil {
+		return err
 	}
-	irc.SendRawf("NICK %s", irc.ClientConfig.Nick)
-	irc.SendRawf("USER %s 0 * :%s", irc.ClientConfig.User, irc.ClientConfig.Realname)
-
 	return nil
 }
 
 func (irc *Connection) Wait() {
 	irc.logger.Debugf("Waiting for IRC to finish")
-	<-irc.Finished
-	close(irc.writeChan)
-	_ = irc.socket.Close()
+	irc.connection.Loop()
 	irc.logger.Debugf("IRC Finished")
 }
 
 func (irc *Connection) ConnectAndWait() error {
-	if !irc.initialised {
-		irc.Init()
-	}
 	err := irc.Connect()
 	if err != nil {
 		return err
@@ -214,11 +146,11 @@ func (irc *Connection) ConnectAndWaitWithRetry(maxRetries int) error {
 		if retryCount > maxRetries {
 			return errors.New("maximum retries reached")
 		}
-		irc.Init()
 		retryDelay = retryCount*5 + retryDelay
 		if retryDelay > 300 {
 			retryDelay = 300
 		}
+		irc.connection.ReconnectFreq = time.Duration(retryDelay) * time.Second
 		if err != nil {
 			irc.logger.Errorf("Error connecting: %s", err.Error())
 			irc.logger.Infof("Retrying connect in %d", retryDelay)
@@ -230,7 +162,7 @@ func (irc *Connection) ConnectAndWaitWithRetry(maxRetries int) error {
 		case <-sleep.C:
 		//NOOP
 		case <-sigWait:
-			break
+			return fmt.Errorf("terminate Signal received")
 		}
 	}
 }
